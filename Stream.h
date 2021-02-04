@@ -22,18 +22,7 @@ class Stream {
     friend class Report;
 
 public:
-    static void enablePeerAccess(int from, int to)
-    {
-        static std::map<std::tuple<int, int>, bool> peer_access;
-        auto from_to = peer_access.find({from, to});
-        if (from_to == peer_access.end()) {
-            CALL_HIP(hipSetDevice(from));
-            CALL_HIP(hipDeviceEnablePeerAccess(to, 0));
-            peer_access[{from, to}] = true;
-            printf("\tpeer access from %d to %d\n", from, to);
-        }
-    }
-
+    static void enablePeerAccess(int from, int to);
     static Stream<T>* make(std::string const& string,
                            std::size_t size, double duration, T alpha);
 
@@ -58,63 +47,8 @@ public:
             delete c_;
     }
 
-    void run()
-    {
-        setAffinity();
-        double timestamp;
-        do {
-            auto start = std::chrono::high_resolution_clock::now();
-            dispatch();
-            auto stop = std::chrono::high_resolution_clock::now();
-            timestamp =
-                std::chrono::duration_cast<
-                    std::chrono::duration<double>>(stop-beginning_).count();
-            timestamps_.push_back(timestamp);
-            double time =
-                std::chrono::duration_cast<
-                    std::chrono::duration<double>>(stop-start).count();
-            bandwidths_.push_back(bandwidth(time));
-        }
-        while (timestamp < duration_);
-    }
-
-    void test()
-    {
-        switch (workload_.type()) {
-            case Workload::Type::Hip:
-            case Workload::Type::Copy:
-            case Workload::Type::Mul:
-            case Workload::Type::Add:
-                a_->init(0.0, 1.0);
-                b_->init(length_, -1.0);
-                break;
-            case Workload::Type::Triad:
-                alpha_ = 2.0;
-                a_->init(0.0, 0.5);
-                b_->init(length_, -1.0);
-                break;
-            case Workload::Type::Dot:
-                a_->init(0.2, 0.0);
-                b_->init(5.0, 0.0);
-                dot_sum_ = 0.0;
-                break;
-            default: assert(false);
-        }
-        if (workload_.type() == Workload::Type::Add ||
-            workload_.type() == Workload::Type::Triad)
-            c_->init(0.0, 0.0);
-        setAffinity();
-        dispatch();
-        switch (workload_.type()) {
-            case Workload::Type::Hip:   b_->check(0.0, 1.0); break;
-            case Workload::Type::Copy:  b_->check(0.0, 1.0); break;
-            case Workload::Type::Mul:   b_->check(0.0, alpha_); break;
-            case Workload::Type::Add:   c_->check(length_, 0.0); break;
-            case Workload::Type::Triad: c_->check(length_, 0.0); break;
-            case Workload::Type::Dot:   assert(dot_sum_ == length_); break;
-            default: assert(false);
-        }
-    }
+    void run();
+    void test();
 
     virtual void printInfo() = 0;
 

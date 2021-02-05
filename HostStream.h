@@ -4,8 +4,8 @@
 #include "Stream.h"
 
 //------------------------------------------------------------------------------
-// \class HostStream
-// \brief stream for a CPU core
+/// \class HostStream
+/// \brief stream for a CPU core
 template <typename T>
 class HostStream: public Stream<T> {
 public:

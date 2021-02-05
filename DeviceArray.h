@@ -11,8 +11,8 @@
 #endif
 
 //------------------------------------------------------------------------------
-// \class DeviceArray
-// \brief array in device memory
+/// \class DeviceArray
+/// \brief array in device memory
 #if defined(__NVCC__)
     template <typename T>
     __global__ void init_kernel(T* a, T start, T step)
@@ -25,6 +25,7 @@
     __global__ void check_kernel(T* a, T start, T step)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
+        /// \todo Improve error reporting. Remove device-side assert.
         assert(a[i] == start + step*i);
     }
 #endif
@@ -35,14 +36,16 @@ public:
     DeviceArray(int device_id, std::size_t size)
         : Array<T>(size), device_id_(device_id)
     {
-        CALL_HIP(hipSetDevice(device_id_));
-        CALL_HIP(hipMalloc(&this->device_ptr_, this->size_));
+        HIP_CALL(hipSetDevice(device_id_),
+                 "Setting the device failed.");
+        HIP_CALL(hipMalloc(&this->device_ptr_, this->size_),
+                 "Allocation of device memory failed.");
     }
 
     ~DeviceArray()
     {
-        CALL_HIP(hipSetDevice(device_id_));
-        CALL_HIP(hipFree(this->device_ptr_));
+        hipSetDevice(device_id_);
+        hipFree(this->device_ptr_);
     }
 
     T* host_ptr() override { return(this->device_ptr_); }
@@ -52,20 +55,24 @@ public:
 
     void init(T start, T step) override
     {
-        CALL_HIP(hipSetDevice(device_id_));
+        HIP_CALL(hipSetDevice(device_id_),
+                 "Setting the device failed.");
         init_kernel<<<dim3(this->length_/group_size_),
                       dim3(group_size_),
                       0, 0>>>(this->device_ptr_, start, step);
-        hipDeviceSynchronize();
+        HIP_CALL(hipDeviceSynchronize(),
+                 "Device synchronization failed.");
     }
 
     void check(T start, T step) override
     {
-        CALL_HIP(hipSetDevice(device_id_));
+        HIP_CALL(hipSetDevice(device_id_),
+                 "Setting the device failed.");
         check_kernel<<<dim3(this->length_/group_size_),
                        dim3(group_size_),
                        0, 0>>>(this->device_ptr_, start, step);
-        hipDeviceSynchronize();
+        HIP_CALL(hipDeviceSynchronize(),
+                 "Device synchronization failed.");
     }
 
 private:
@@ -81,6 +88,7 @@ private:
     static __global__ void check_kernel(T* a, T start, T step)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
+        /// \todo Improve error reporting. Remove device-side assert.
         assert(a[i] == start + step*i);
     }
 #endif

@@ -15,8 +15,8 @@
 #endif
 
 //------------------------------------------------------------------------------
-// \class Stream
-// \brief parent class for HostStream and DeviceStream
+/// \class Stream
+/// \brief parent class for HostStream and DeviceStream
 template <typename T>
 class Stream {
     friend class Report;
@@ -91,7 +91,8 @@ protected:
         CPU_SET(core_id, &cpuset);
         int retval = pthread_setaffinity_np(pthread_self(),
                                             sizeof(cpu_set_t), &cpuset);
-        assert(retval == 0);
+        ASSERT(retval == 0,
+               "Setting thread affinity failed.");
     }
 
     std::string label_;
@@ -135,8 +136,10 @@ private:
         if (typeid(this->b_) == typeid(DeviceArray<T>))
             b = this->b_->device_ptr();
 
-        hipMemcpy(b, a, this->size_, hipMemcpyDefault);
-        hipDeviceSynchronize();
+        HIP_CALL(hipMemcpy(b, a, this->size_, hipMemcpyDefault),
+                 "HIP copy failed.");
+        HIP_CALL(hipDeviceSynchronize(),
+                 "Device synchronization failed.");
     }
 
     void dispatch()
@@ -148,7 +151,7 @@ private:
             case Workload::Type::Add:   add();   break;
             case Workload::Type::Triad: triad(); break;
             case Workload::Type::Dot:   dot();   break;
-            default: assert(false);
+            default: ERROR("Invalid workload type.");
         }
     }
 
@@ -161,14 +164,10 @@ private:
             case Workload::Type::Add:   return 3.0*size_/time/1e9;
             case Workload::Type::Triad: return 3.0*size_/time/1e9;
             case Workload::Type::Dot:   return 2.0*size_/time/1e9;
-            default: assert(false);
+            default: ERROR("Invalid workload type.");
         }
         return 0.0; // suppressing NVCC warning
     }
 
     static std::chrono::high_resolution_clock::time_point beginning_;
 };
-
-template <typename T>
-std::chrono::high_resolution_clock::time_point Stream<T>::beginning_ =
-    std::chrono::high_resolution_clock::now();

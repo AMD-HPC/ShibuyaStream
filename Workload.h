@@ -4,8 +4,8 @@
 #include <map>
 
 //------------------------------------------------------------------------------
-// \class Workload
-// \brief type of streaming workload
+/// \class Workload
+/// \brief type of streaming workload
 class Workload {
 public:
     enum class Type {Copy, Mul, Add, Triad, Dot, Hip};

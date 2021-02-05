@@ -4,8 +4,8 @@
 #include "Stream.h"
 
 //------------------------------------------------------------------------------
-// \class Report
-// \brief Generates execution summaries.
+/// \class Report
+/// \brief Generates execution summaries.
 class Report {
 public:
     Report(double duration, double interval)

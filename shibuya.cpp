@@ -1,21 +1,23 @@
-/*
-    Jakub Kurzak
-    AMD Research
-    2020
-*/
+
+/// \date 2020-2021
+/// \author Jakub Kurzak
+/// \copyright Advanced Micro Devices, Inc.
+
 #include "Report.h"
 #include "HostStream.h"
 #include "DeviceStream.h"
 
+#include <iostream>
 #include <thread>
 
 #include <unistd.h>
 #include <numa.h>
 
 //------------------------------------------------------------------------------
-int main(int argc, char** argv)
+/// \todo Template for precision. Add support for vector types.
+void run(int argc, char** argv)
 {
-    assert(numa_available() != -1);
+    ASSERT(numa_available() != -1, "NUMA not available.");
     int num_cpus = numa_num_configured_cpus();
     fprintf(stderr, "%3d CPUs\n", num_cpus);
 
@@ -33,11 +35,12 @@ int main(int argc, char** argv)
     }
 
     int num_gpus;
-    CALL_HIP(hipGetDeviceCount(&num_gpus));
+    HIP_CALL(hipGetDeviceCount(&num_gpus), "Getting the device count failed.");
     fprintf(stderr, "%3d GPUs\n", num_gpus);
 
-    assert(argc > 3);
-    // size in MB;
+    /// \todo Print command line syntax.
+    ASSERT(argc > 3, "Invalid command line.");
+    // size in MB
     std::size_t array_size = std::atol(argv[1])*1024*1024;
     std::size_t array_length = array_size/sizeof(double);
     // duration in seconds
@@ -96,6 +99,17 @@ int main(int argc, char** argv)
     for (auto const& stream : streams)
         report.addTimeline(*stream);
     report.print();
+}
 
-    return (EXIT_SUCCESS);
+//------------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+    try {
+        run(argc, argv);
+    }
+    catch (Exception& e) {
+        std::cerr << std::endl << e.what() << std::endl << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
 }

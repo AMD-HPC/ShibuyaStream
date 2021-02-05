@@ -6,8 +6,8 @@
 #include <cstdlib>
 
 //------------------------------------------------------------------------------
-// \class Array
-// \brief parent class for HostArray and DeviceArray
+/// \class Array
+/// \brief parent class for HostArray and DeviceArray
 template <typename T>
 class Array {
 public:

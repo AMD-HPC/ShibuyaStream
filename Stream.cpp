@@ -2,7 +2,12 @@
 #include "HostStream.h"
 #include "DeviceStream.h"
 
+template <typename T>
+std::chrono::high_resolution_clock::time_point Stream<T>::beginning_ =
+    std::chrono::high_resolution_clock::now();
+
 //------------------------------------------------------------------------------
+/// \brief Enables peer access from one device to another.
 template <typename T>
 void
 Stream<T>::enablePeerAccess(int from, int to)
@@ -10,22 +15,22 @@ Stream<T>::enablePeerAccess(int from, int to)
     static std::map<std::tuple<int, int>, bool> peer_access;
     auto from_to = peer_access.find({from, to});
     if (from_to == peer_access.end()) {
-        CALL_HIP(hipSetDevice(from));
-        CALL_HIP(hipDeviceEnablePeerAccess(to, 0));
+        HIP_CALL(hipSetDevice(from),
+                 "Setting the device failed.");
+        HIP_CALL(hipDeviceEnablePeerAccess(to, 0),
+                 "Enabling of peer access failed.");
         peer_access[{from, to}] = true;
-        printf("\tpeer access from %d to %d\n", from, to);
+        fprintf(stderr, "\tpeer access from %d to %d\n", from, to);
     }
 }
 
 //------------------------------------------------------------------------------
-// \brief Creates either a HostStream or a DeviceStream.
+/// \brief Creates either a HostStream or a DeviceStream.
 template <typename T>
 Stream<T>*
 Stream<T>::make(std::string const& label,
                 std::size_t length, double duration, T alpha)
 {
-    assert(length > 0);
-
     char hardware_char;
     int  hardware_id;
     char workload_char;
@@ -74,7 +79,7 @@ Stream<T>::make(std::string const& label,
                                        length, duration,
                                        alpha, a, b, c);
         default:
-            assert(false);
+            ERROR("Invalid device letter.");
     }
     return nullptr; // suppressing NVCC warning
 }
@@ -134,7 +139,7 @@ Stream<T>::test()
             b_->init(5.0, 0.0);
             dot_sum_ = 0.0;
             break;
-        default: assert(false);
+        default: ERROR("Invalid workload type.");
     }
     if (workload_.type() == Workload::Type::Add ||
         workload_.type() == Workload::Type::Triad)
@@ -147,8 +152,10 @@ Stream<T>::test()
         case Workload::Type::Mul:   b_->check(0.0, alpha_); break;
         case Workload::Type::Add:   c_->check(length_, 0.0); break;
         case Workload::Type::Triad: c_->check(length_, 0.0); break;
-        case Workload::Type::Dot:   assert(dot_sum_ == length_); break;
-        default: assert(false);
+        case Workload::Type::Dot:
+            ASSERT(dot_sum_ == length_, "Correctness check failed.");
+            break;
+        default: ERROR("Invalid workload type.");
     }
 }
 
@@ -157,7 +164,8 @@ void
 Stream<double>::test();
 
 //------------------------------------------------------------------------------
-// \brief Scans command line definition of a stream.
+/// \brief Scans command line definition of a stream.
+/// \todo Implement syntax checks.
 template <typename T>
 void
 Stream<T>::scanString(std::string const& string,
@@ -179,21 +187,21 @@ Stream<T>::scanString(std::string const& string,
     workload_char = string[pos];
     pos += 2;
 
-    // Scan array a location.
+    // Scan array 'a' location.
     a_location_char = string[pos++];
     end = string.find('-', pos);
     a_location_id = std::stoi(string.substr(pos, end-pos));
     pos += 2;
 
-    // Scan array b location.
+    // Scan array 'b' location.
     b_location_char = string[pos++];
     end = string.find('-', pos);
     b_location_id = std::stoi(string.substr(pos, end-pos));
     pos += 2;
 
-    // if add or triad
+    // if 'add' or 'triad'
     if (workload_char == 'A' || workload_char == 'T') {
-        // Scan array c location.
+        // Scan array 'c' location.
         c_location_char = string[pos++];
         end = string.find('-', pos);
         c_location_id = std::stoi(string.substr(pos, end-pos));

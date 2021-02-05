@@ -15,8 +15,8 @@
 #endif
 
 //------------------------------------------------------------------------------
-// \class HostArray
-// \brief array in host memory
+/// \class HostArray
+/// \brief array in host memory
 template <typename T>
 class HostArray: public Array<T> {
 public:
@@ -24,7 +24,7 @@ public:
         : Array<T>(size), numa_id_(numa_id)
     {
         this->host_ptr_ = (T*)numa_alloc_onnode(this->size_, numa_id_);
-        assert(this->host_ptr_ != nullptr);
+        ASSERT(this->host_ptr_ != nullptr, "NUMA allocation failed.");
     }
 
     ~HostArray()
@@ -36,16 +36,20 @@ public:
 
     void registerMem() override
     {
-        CALL_HIP(hipHostRegister(this->host_ptr_,
+        HIP_CALL(hipHostRegister(this->host_ptr_,
                                  this->size_,
-                                 hipHostRegisterMapped));
-        CALL_HIP(hipHostGetDevicePointer((void**)(&this->device_ptr_),
-                                         (void*)this->host_ptr_, 0));
+                                 hipHostRegisterMapped),
+                 "Registration of host memory failed.");
+        HIP_CALL(hipHostGetDevicePointer((void**)(&this->device_ptr_),
+                                         (void*)this->host_ptr_, 0),
+                 "Retrieving of device pointer to host memory failed.");
+
     }
 
     void unregisterMem() override
     {
-        CALL_HIP(hipHostUnregister(this->host_ptr_));
+        HIP_CALL(hipHostUnregister(this->host_ptr_),
+                 "Unregistering of device pointer to host memory failed.");
     }
 
     void printInfo() override { fprintf(stderr, "\tnode%6d", numa_id_); }
@@ -63,7 +67,7 @@ public:
     {
         T val = start;
         for (std::size_t i = 0; i < this->length_; ++i) {
-            assert(host_ptr_[i] == val);
+            ASSERT(host_ptr_[i] == val, "Host correctness check failed.");
             val += step;
         }
     }

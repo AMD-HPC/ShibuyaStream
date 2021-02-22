@@ -1,9 +1,9 @@
 ```
- _______ __     __ __                       _______ __                    
+ _______ __     __ __                       _______ __
 |     __|  |--.|__|  |--.--.--.--.--.---.-.|     __|  |_.----.-----.---.-..--------.
 |__     |     ||  |  _  |  |  |  |  |  _  ||__     |   _|   _|  -__|  _  ||        |
 |_______|__|__||__|_____|_____|___  |___._||_______|____|__| |_____|___._||__|__|__|
-                              |_____|                                     
+                              |_____|
 ```
 # Bandwidth Benchmark
 
@@ -15,6 +15,7 @@
 
 ## Compiling
 
+* `cd src`
 * `make` or `make rocm` to build for AMD
 * `make cuda` to build for NVIDIA
 
@@ -34,13 +35,13 @@ where streams are define as:
 
 ```
 <C|D><#>-<C|M|A|T|D|H>-<N|D><#>-<N|D><#>-<N|D><#>-<#>
- Core     Copy        NUMA     NUMA     NUMA    
+ Core     Copy        NUMA     NUMA     NUMA
    Device   Multiply    Device   Device   Device
               Add
                 Triad
                   Dot
                     hipMemcpy
-                  
+
  core or device executing the operation
           type of operation
                       location for array A

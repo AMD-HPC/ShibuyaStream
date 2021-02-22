@@ -1,3 +1,11 @@
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      exception handling
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
+#pragma once
 
 #include <cstdio>
 #include <exception>
@@ -11,16 +19,18 @@
 #endif
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Implements the base class for exception handling.
+///
 class Exception : public std::exception {
 public:
-    Exception(const char* func, const char* file, int line)
-        : std::exception(),
-          func_(func), file_(file), line_(line) {}
+    Exception() : std::exception() {}
 
     Exception(std::string const& msg,
               const char* func, const char* file, int line)
         : std::exception(),
-          msg_(msg), func_(func), file_(file), line_(line) {}
+          msg_(msg+"\n"+func+"() | "+file+" | L:"+std::to_string(line)),
+          func_(func), file_(file), line_(line) {}
 
     virtual char const* what() const noexcept override
     {
@@ -28,86 +38,129 @@ public:
     }
 
 protected:
+    void what(std::string const& msg,
+              const char* func, const char* file, int line)
+    {
+        msg_ = msg+"\n"+func+"() | "+file+" | "+std::to_string(line);
+    }
+
     std::string msg_;
     std::string func_;
     std::string file_;
     int line_;
 };
 
-/// Throws Exception with a message.
+/// Report errors.
 #define ERROR(msg) \
 { \
-    throw Exception(msg, __func__, __FILE__, __LINE__); \
+    throw Exception(std::string("ERROR: ")+msg, __func__, __FILE__, __LINE__); \
 }
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Implements exception handling for the ERROR_IF macro.
+///
 class TrueConditionException : public Exception {
 public:
+    TrueConditionException(const char* condition,
+                           const char* func,
+                           const char* file,
+                           int line)
+        : Exception(std::string("ERROR: ")+
+                    "Condition '"+condition+"' is true.",
+                    func, file, line) {}
+
     TrueConditionException(const char* condition,
                            const char* description,
                            const char* func,
                            const char* file,
                            int line)
-        : Exception(func, file, line)
-    {
-        msg_ = std::string("ShibuyaStream ERROR: ")+
-               description+" Condition '"+condition+"' is true.";
-    }
+        : Exception(std::string("ERROR: ")+description+
+                    " Condition '"+condition+"' is true.",
+                    func, file, line) {}
 };
 
-/// Throws TrueConditionException if condition is true.
-#define ERROR_IF(condition, description) \
+/// Checks error conditions.
+#define ERROR_IF(condition, ...) \
 { \
     if (condition) \
-        throw TrueConditionException(#condition, description, \
+        throw TrueConditionException(#condition, ##__VA_ARGS__, \
                                      __func__, __FILE__, __LINE__); \
 }
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Implements exception handling for the ASSERT macro.
+///
 class FalseConditionException : public Exception {
 public:
+    FalseConditionException(const char* assertion,
+                            const char* func,
+                            const char* file,
+                            int line)
+        : Exception(std::string("ERROR: ")+
+                    "Assertion '"+assertion+"' is false.",
+                    func, file, line) {}
+
     FalseConditionException(const char* assertion,
                             const char* description,
                             const char* func,
                             const char* file,
                             int line)
-        : Exception(func, file, line)
-    {
-        msg_ = std::string("ShibuyaStream ERROR: ")+
-               +description+" Assertion '"+assertion+"' is false.";
-    }
+        : Exception(std::string("ERROR: ")+description+
+                    " Assertion '"+assertion+"' is false.",
+                    func, file, line) {}
 };
 
-/// Throws FalseConditionException if assertion is false.
-#define ASSERT(assertion, description) \
+/// Checks assertions.
+#define ASSERT(assertion, ...) \
 { \
     if (!(assertion)) \
-        throw FalseConditionException(#assertion, description, \
-                                     __func__, __FILE__, __LINE__); \
+        throw FalseConditionException(#assertion, ##__VA_ARGS__, \
+                                      __func__, __FILE__, __LINE__); \
 }
 
 //------------------------------------------------------------------------------
-class HipException : public Exception {
+/// \brief
+///     Implements exception handling for the HIP_CALL macro.
+///
+class HIPException : public Exception {
 public:
-    HipException(const char* call,
+    HIPException(const char* call,
+                 hipError_t code,
+                 const char* func,
+                 const char* file,
+                 int line)
+        : Exception()
+    {
+        const char* name = hipGetErrorName(code);
+        const char* string = hipGetErrorString(code);
+        what(std::string("ERROR: ")+
+             call+" returned "+name+" ("+string+").",
+             func, file, line);
+    }
+
+    HIPException(const char* call,
                  hipError_t code,
                  const char* description,
                  const char* func,
                  const char* file,
                  int line)
-        : Exception(func, file, line)
+        : Exception()
     {
-        const char* name = hipGetErrorName(code);
-        const char* string = hipGetErrorString(code);
-        msg_ = std::string("ShibuyaStream ERROR: ")+
-               description+" "+call+" returned '"+name+"' ("+string+").";
+        char const* name = hipGetErrorName(code);
+        char const* string = hipGetErrorString(code);
+        what(std::string("HIP ERROR: ")+description+" \n"+
+             call+" returned "+name+" ("+string+").",
+             func, file, line);
     }
 };
 
-/// Throws HipException if call does not return hipSuccess.
-#define HIP_CALL(call, description) \
+/// Checks for errors in HIP calls.
+#define HIP_CALL(call, ...) \
 { \
-    if (call != hipSuccess) \
-        throw HipException(#call, call, description, \
+    hipError_t code = call; \
+    if (code != hipSuccess) \
+        throw HIPException(#call, code, ##__VA_ARGS__, \
                            __func__, __FILE__, __LINE__); \
 }

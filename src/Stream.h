@@ -20,8 +20,6 @@
 #include "hip2cuda.h"
 #endif
 
-Represents an array in either host memory or device memory.
-
 //------------------------------------------------------------------------------
 /// \brief
 ///     Represents a streaming workload.

@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      implementations of Stream methods
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #include "HostStream.h"
 #include "DeviceStream.h"
 
@@ -7,7 +13,17 @@ std::chrono::high_resolution_clock::time_point Stream<T>::beginning_ =
     std::chrono::high_resolution_clock::now();
 
 //------------------------------------------------------------------------------
-/// \brief Enables peer access from one device to another.
+/// \brief
+///     Enables peer access from one device to another.
+///     Only enables if the path not already enabled.
+///     Stores a map of enabled connections.
+///
+/// \param[in] from
+///     the device accessing the memory of another device
+///
+/// \param[in] to
+///     the device being accessed
+///
 template <typename T>
 void
 Stream<T>::enablePeerAccess(int from, int to)
@@ -25,7 +41,22 @@ Stream<T>::enablePeerAccess(int from, int to)
 }
 
 //------------------------------------------------------------------------------
-/// \brief Creates either a HostStream or a DeviceStream.
+/// \brief
+///     Creates either a HostStream or a DeviceStream based on the label.
+///     Enables peer access for inter-device streams.
+///
+/// \param[in] label
+///     the string defining the stream, e.g., C0-C-N0-N0
+///
+/// \param[in] length
+///     number of elements in the stream
+///
+/// \param[in] duration
+///     the duration of the iteration in seconds
+///
+/// \param[in] alpha
+///     the scaling factor for Mul and Triad
+///
 template <typename T>
 Stream<T>*
 Stream<T>::make(std::string const& label,
@@ -90,6 +121,11 @@ Stream<double>::make(std::string const& label,
                      std::size_t length, double duration, double alpha);
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Executes the stream operation for the requested duration of time.
+///     Stores the bandwidth and completion timestamp of each step.
+///     Uses `std::chrono` to measure time.
+///
 template <typename T>
 void
 Stream<T>::run()
@@ -117,6 +153,16 @@ void
 Stream<double>::run();
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Tests the correctness of the stream operation.
+///     Initializes the input arrays to a sequence of consecutive numbers.
+///     Checks if the output array contains a sequence of consecutive numbers.
+///
+/// \remark
+///     The three parts: initialization, execution, and validation are executed
+///     by different kernels. Therefore, correctness only requires coarse-grain
+///     coherence.
+///
 template <typename T>
 void
 Stream<T>::test()
@@ -164,8 +210,15 @@ void
 Stream<double>::test();
 
 //------------------------------------------------------------------------------
-/// \brief Scans command line definition of a stream.
-/// \todo Implement syntax checks.
+/// \brief
+///     Scans the label, i.e., the command line definition of the stream.
+///
+/// \returns
+///     individual components of the stream's definition
+///
+/// \todo
+///     Implement syntax checks.
+///
 template <typename T>
 void
 Stream<T>::scanString(std::string const& string,
@@ -187,19 +240,19 @@ Stream<T>::scanString(std::string const& string,
     workload_char = string[pos];
     pos += 2;
 
-    // Scan array 'a' location.
+    // Scan array `a` location.
     a_location_char = string[pos++];
     end = string.find('-', pos);
     a_location_id = std::stoi(string.substr(pos, end-pos));
     pos += 2;
 
-    // Scan array 'b' location.
+    // Scan array `b` location.
     b_location_char = string[pos++];
     end = string.find('-', pos);
     b_location_id = std::stoi(string.substr(pos, end-pos));
     pos += 2;
 
-    // if 'add' or 'triad'
+    // if Add or Triad
     if (workload_char == 'A' || workload_char == 'T') {
         // Scan array 'c' location.
         c_location_char = string[pos++];

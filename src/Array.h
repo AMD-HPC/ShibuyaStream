@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      Array class declaration and inline routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #pragma once
 
 #include "Exception.h"
@@ -6,8 +12,10 @@
 #include <cstdlib>
 
 //------------------------------------------------------------------------------
-/// \class Array
-/// \brief parent class for HostArray and DeviceArray
+/// \brief
+///     Represents an array in either host memory or device memory.
+///     Serves as the parent class for HostArray and DeviceArray.
+///
 template <typename T>
 class Array {
 public:

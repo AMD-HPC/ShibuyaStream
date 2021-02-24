@@ -35,8 +35,8 @@ where streams are define as:
 
 ```
 <C|D><#>-<C|M|A|T|D|H>-<N|D><#>-<N|D><#>-<N|D><#>-<#>
- Core     Copy        NUMA     NUMA     NUMA
-   Device   Multiply    Device   Device   Device
+ Core     Copy          NUMA     NUMA     NUMA
+   Device   Multiply      Device   Device   Device
               Add
                 Triad
                   Dot
@@ -44,10 +44,10 @@ where streams are define as:
 
  core or device executing the operation
           type of operation
-                      location for array A
-                               location for array B
-                                        location for array C (only for add and triad)
-                                                 # of the core controlling the device (only for device streams)
+                        location for array A
+                                 location for array B
+                                          location for array C (only for add and triad)
+                                                   # of the core controlling the device (only for device streams)
 ```
 
 ### Examples of Streams

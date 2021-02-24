@@ -1,8 +1,10 @@
-
-/// \date 2020-2021
-/// \author Jakub Kurzak
-/// \copyright Advanced Micro Devices, Inc.
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      main ShibuyaStream driver routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #include "Report.h"
 #include "HostStream.h"
 #include "DeviceStream.h"
@@ -14,7 +16,15 @@
 #include <numa.h>
 
 //------------------------------------------------------------------------------
-/// \todo Template for precision. Add support for vector types.
+/// \brief
+///     Print minimal system info.
+///     Sets up and launches the run.
+///     Prints the performance results.
+///
+/// \todo
+///     Template precision.
+///     Add support for vector types.
+///
 void run(int argc, char** argv)
 {
     ASSERT(numa_available() != -1, "NUMA not available.");
@@ -38,7 +48,7 @@ void run(int argc, char** argv)
     HIP_CALL(hipGetDeviceCount(&num_gpus), "Getting the device count failed.");
     fprintf(stderr, "%3d GPUs\n", num_gpus);
 
-    /// \todo Print command line syntax.
+    /// \todo Print command-line syntax.
     ASSERT(argc > 3, "Invalid command line.");
     // size in MB
     std::size_t array_size = std::atol(argv[1])*1024*1024;
@@ -88,10 +98,6 @@ void run(int argc, char** argv)
         }
     }
     fprintf(stderr, "%lf max time\n", max_time);
-
-    // for (auto const& stream : streams)
-    //     stream->printStats();
-
     fflush(stderr);
     usleep(100);
 
@@ -102,6 +108,16 @@ void run(int argc, char** argv)
 }
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Launches the run inside a `try` block.
+///     Caches and reports exceptions.
+///
+///     Usage: ./shibuya size time strea1 stream2 ...
+///
+///     - size: size in megabytes
+///     - time: duration in seconds
+///     - stream1 stream2 ...: communication streams (see README for details)
+///
 int main(int argc, char** argv)
 {
     try {

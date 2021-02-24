@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      HostArray class declaration and inline routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #pragma once
 
 #include "Array.h"
@@ -15,11 +21,14 @@
 #endif
 
 //------------------------------------------------------------------------------
-/// \class HostArray
-/// \brief array in host memory
+/// \brief
+///     Represents an array in host memory.
+///     Inherits from the Array class.
+///
 template <typename T>
 class HostArray: public Array<T> {
 public:
+    /// Allocates memory from the specified NUMA node.
     HostArray(int numa_id, std::size_t size)
         : Array<T>(size), numa_id_(numa_id)
     {
@@ -34,6 +43,8 @@ public:
 
     T* host_ptr() override { return host_ptr_; }
 
+    /// Page-locks the memory.
+    /// Retrieves the device pointer.
     void registerMem() override
     {
         HIP_CALL(hipHostRegister(this->host_ptr_,
@@ -46,14 +57,19 @@ public:
 
     }
 
+    /// Page-unlocks the memory.
     void unregisterMem() override
     {
         HIP_CALL(hipHostUnregister(this->host_ptr_),
                  "Unregistering of device pointer to host memory failed.");
     }
 
+    /// Prints the NUMA node number.
     void printInfo() override { fprintf(stderr, "\tnode%6d", numa_id_); }
 
+    /// Initializes an array in host memory
+    /// with values starting at `start`
+    /// and growing by `step`.
     void init(T start, T step) override
     {
         T val = start;
@@ -63,6 +79,9 @@ public:
         }
     }
 
+    /// Checks that an array in host memory
+    /// contains values starting at `start`
+    /// and growing by `step`.
     void check(T start, T step) override
     {
         T val = start;

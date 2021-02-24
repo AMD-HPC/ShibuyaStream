@@ -1,13 +1,29 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      Report class declaration and inline routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #pragma once
 
 #include "Stream.h"
 
 //------------------------------------------------------------------------------
-/// \class Report
-/// \brief Generates execution summaries.
+/// \brief
+///     Generates a symmary of the execution.
+///
 class Report {
 public:
+    /// \brief
+    ///     Creates the Report object.
+    ///
+    /// \param[in] duration
+    ///     duration of the iteration in seconds
+    ///
+    /// \param[in] interval
+    ///     the sampling interval for the report
+    ///
     Report(double duration, double interval)
         : duration_(duration), interval_(interval) {}
 
@@ -19,13 +35,18 @@ public:
     void print();
 
 private:
-    double duration_;
-    double interval_;
-    std::vector<std::string> labels_;
-    std::vector<std::vector<double>> bandwidths_;
+    double duration_; ///< duration in seconds
+    double interval_; ///< sampling interval
+
+    std::vector<std::string> labels_;             ///< vector of streams' labels
+    std::vector<std::vector<double>> bandwidths_; ///< bandwidths of each stream
 };
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Adds a sampled timeline of a stream to the Report.
+///     Samples the bandwidth of the stream using interval_.
+///
 template <typename T>
 inline
 void
@@ -44,6 +65,12 @@ Report::addTimeline(Stream<T> const& stream)
 }
 
 //------------------------------------------------------------------------------
+/// \brief
+///     Prints the performance report.
+///     Prints the labels of all streams.
+///     Prints the sampled bandwidths of all streams in columns.
+///     Computes the aggregate bandwidth and prints as the last column.
+///
 inline
 void
 Report::print()

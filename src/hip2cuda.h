@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      HIP to CUDA name replacements
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #define hipDeviceSynchronize        cudaDeviceSynchronize
 #define hipDeviceEnablePeerAccess   cudaDeviceEnablePeerAccess
 #define hipFree                     cudaFree

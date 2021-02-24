@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      DeviceArray class declaration and inline routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #pragma once
 
 #include "Array.h"
@@ -10,9 +16,8 @@
 #include "hip2cuda.h"
 #endif
 
-//------------------------------------------------------------------------------
-/// \class DeviceArray
-/// \brief array in device memory
+// Kernels defined as global functions for NVCC,
+// which does not support static device members.
 #if defined(__NVCC__)
     template <typename T>
     __global__ void init_kernel(T* a, T start, T step)
@@ -30,9 +35,15 @@
     }
 #endif
 
+//------------------------------------------------------------------------------
+/// \brief
+///     Represents an array in device memory.
+///     Inherits from the Array class.
+///
 template <typename T>
 class DeviceArray: public Array<T> {
 public:
+    /// Allocates memory on the specified device.
     DeviceArray(int device_id, std::size_t size)
         : Array<T>(size), device_id_(device_id)
     {
@@ -53,6 +64,9 @@ public:
     void unregisterMem() override {}
     void printInfo() override { fprintf(stderr, "\tdevice%4d", device_id_); }
 
+    /// Initializes an array in device memory
+    /// with values starting at `start`
+    /// and growing by `step`.
     void init(T start, T step) override
     {
         HIP_CALL(hipSetDevice(device_id_),
@@ -64,6 +78,9 @@ public:
                  "Device synchronization failed.");
     }
 
+    /// Checks that an array in device memory
+    /// contains values starting at `start`
+    /// and growing by `step`.
     void check(T start, T step) override
     {
         HIP_CALL(hipSetDevice(device_id_),
@@ -76,15 +93,19 @@ public:
     }
 
 private:
+    /// work-group size for initialization and validation
     static const int group_size_ = 256;
 
+// As opposed to NVCC, HIPCC supports static device members.
 #if defined(__HIPCC__)
+    /// Initializes an array in device memory.
     static __global__ void init_kernel(T* a, T start, T step)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         a[i] = start + step*i;
     }
 
+    /// Checks the contents of an array in device memory.
     static __global__ void check_kernel(T* a, T start, T step)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
@@ -93,5 +114,5 @@ private:
     }
 #endif
 
-    int device_id_;
+    int device_id_; ///< device number
 };

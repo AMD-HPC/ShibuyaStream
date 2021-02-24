@@ -1,4 +1,10 @@
-
+//------------------------------------------------------------------------------
+/// \file
+/// \brief      DeviceStream class declaration and inline routines
+/// \date       2020-2021
+/// \author     Jakub Kurzak
+/// \copyright  Advanced Micro Devices, Inc.
+///
 #pragma once
 
 #include "Stream.h"
@@ -60,11 +66,41 @@ __global__ void dot_kernel(T const* a, T* b,
 #endif
 
 //------------------------------------------------------------------------------
-/// \class DeviceStream
-/// \brief stream for a GPU device
+/// \brief
+///     Represents a streaming workload executed by a GPU.
+///     Inherits from the Stream class.
+///
 template <typename T>
 class DeviceStream: public Stream<T> {
 public:
+    /// \brief
+    ///     Creates a DeviceStream object.
+    ///     Registers the memory and retrieves the GPU pointer for host arrays.
+    ///
+    /// \param[in] label
+    ///     the string defining the stream, e.g., D0-C-D0-D0
+    ///
+    /// \param[in] device_id
+    ///     the number of the GPU device executing the workload
+    ///
+    /// \param[in] host_core_id
+    ///     the number of the CPU core launching the GPU operations
+    ///
+    /// \param[in] workload
+    ///     the workload: Copy, Mul, Add, Triad, Dot, HIP (copy)
+    ///
+    /// \param[in] length
+    ///     the number of elements in the stream
+    ///
+    /// \param[in] duration
+    ///     the duration of the iteration in seconds
+    ///
+    /// \param[in] alpha
+    ///     the scaling factor for Mul and Triad
+    ///
+    /// \param[in] a, b, c
+    ///     the arrays to operate on
+    ///
     DeviceStream(std::string label,
                  int device_id,
                  int host_core_id,
@@ -88,6 +124,9 @@ public:
                  "Allocation of page-locked memory failed.");
     }
 
+    /// Destroys a DeviceStream object.
+    /// Unregisters the `a` and `b` arrays.
+    /// Unregisters the `c` array if the workload is Add or Triad.
     ~DeviceStream()
     {
         this->a_->unregisterMem();
@@ -97,6 +136,8 @@ public:
             this->c_->unregisterMem();
     }
 
+    /// Prints device number, workload type, locations of arrays,
+    /// and core number (the core launching the GPU operations).
     void printInfo() override
     {
         fprintf(stderr, "\tdevice%4d", device_id_);
@@ -106,9 +147,13 @@ public:
     }
 
 private:
+    /// work-group size for streaming kernels
     static const int group_size_ = 1024;
+    /// number of work-groups to launch for Dot
     static const int dot_num_groups_ = 256;
 
+    /// Pins the controlling thread to the given core.
+    /// Sets the device for the streaming workload.
     void setAffinity() override
     {
         // Set the hosting thread.
@@ -118,6 +163,7 @@ private:
                  "Setting the device failed.");
     }
 
+    /// Launches the GPU Copy kernel.
     void copy() override
     {
         copy_kernel<<<dim3(this->length_/group_size_),
@@ -129,6 +175,7 @@ private:
                  "Device synchronization failed.");
     }
 
+    /// Launches the GPU Mul kernel.
     void mul() override
     {
         mul_kernel<<<dim3(this->length_/group_size_),
@@ -141,6 +188,7 @@ private:
                  "Device synchronization failed.");
     }
 
+    /// Launches the GPU Add kernel.
     void add() override
     {
         add_kernel<<<dim3(this->length_/group_size_),
@@ -153,6 +201,7 @@ private:
                  "Device synchronization failed.");
     }
 
+    /// Launches the GPU Triad kernel.
     void triad() override
     {
         triad_kernel<<<dim3(this->length_/group_size_),
@@ -166,6 +215,8 @@ private:
                  "Device synchronization failed.");
     }
 
+    /// Launches the GPU Dot kernel.
+    /// Reduces the partial sums on the host.
     void dot() override
     {
         dot_kernel<<<dim3(dot_num_groups_),
@@ -185,30 +236,37 @@ private:
 
 // __global__ static members are okay for HIPCC.
 #if defined(__HIPCC__)
+    /// Implements the Copy kernel.
     static __global__ void copy_kernel(T const* a, T* b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         b[i] = a[i];
     }
 
+    /// Implements the Mul kernel.
     static __global__ void mul_kernel(T alpha, T const* a, T* b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         b[i] = alpha*a[i];
     }
 
+    /// Implements the Add kernel.
     static __global__ void add_kernel(T const* a, T const* b, T* c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         c[i] = a[i]+b[i];
     }
 
+    /// Implements the Triad kernel.
     static __global__ void triad_kernel(T alpha, T const* a, T const* b, T* c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         c[i] = alpha*a[i] + b[i];
     }
 
+    /// Implements the Dot kernel.
+    /// First, each work-item computes its partial sum.
+    /// Then, each work-group reduces the sums from its threads.
     static __global__ void dot_kernel(T const* a, T* b,
                                       std::size_t length, T* dot_sums)
     {
@@ -233,7 +291,7 @@ private:
     }
 #endif
 
-    int device_id_;
-    int host_core_id_;
-    T* dot_sums_;
+    int device_id_;    ///< device number
+    int host_core_id_; ///< CPU core launching GPU operations
+    T* dot_sums_;      ///< partial sum from each work-group (Dot workload)
 };

@@ -135,7 +135,7 @@ public:
     {
         const char* name = hipGetErrorName(code);
         const char* string = hipGetErrorString(code);
-        what(std::string("ERROR: ")+
+        what(std::string("HIP ERROR: ")+
              call+" returned "+name+" ("+string+").",
              func, file, line);
     }

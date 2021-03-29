@@ -16,7 +16,7 @@
 ## Compiling
 
 * `cd src`
-* `make` to build for AMD
+* `make` or `make rocm` to build for AMD
 * `make cuda` to build for NVIDIA
 
 ## Usage

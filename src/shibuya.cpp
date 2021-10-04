@@ -38,9 +38,9 @@ void run(int argc, char** argv)
     bitmask = numa_get_mems_allowed();
     for (int i = 0; i < numa_num_possible_nodes(); ++i) {
         if (numa_bitmask_isbitset(bitmask, i)) {
-            long free_size;
-            long node_size = numa_node_size(i, &free_size);
-            fprintf(stderr, "\t%2d: %ld, %ld\n", i, node_size, free_size);
+            long long free_size;
+            long long node_size = numa_node_size64(i, &free_size);
+            fprintf(stderr, "\t%2d: %lld, %lld\n", i, node_size, free_size);
         }
     }
 

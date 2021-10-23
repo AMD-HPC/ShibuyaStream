@@ -78,6 +78,15 @@ void run(int argc, char** argv)
     for (auto& thread : threads)
         thread.join();
 
+    double max_time = 0.0;
+    for (auto const& stream : streams) {
+        double end_time = stream->maxTime();
+        if (end_time > max_time) {
+            max_time = end_time;
+        }
+    }
+    fprintf(stderr, "%lf max time\n", max_time);
+
     double min_interval = std::numeric_limits<double>::infinity();
     for (auto const& stream : streams) {
         double interval;
@@ -88,16 +97,11 @@ void run(int argc, char** argv)
         if (interval < min_interval)
             min_interval = interval;
     }
-    fprintf(stderr, "%lf min interval\n", min_interval);
-
-    double max_time = 0.0;
-    for (auto const& stream : streams) {
-        double end_time = stream->maxTime();
-        if (end_time > max_time) {
-            max_time = end_time;
-        }
+    const int max_samples = 1000;
+    if (max_time/min_interval > max_samples) {
+        min_interval = max_time/max_samples;
     }
-    fprintf(stderr, "%lf max time\n", max_time);
+    fprintf(stderr, "%lf min interval\n", min_interval);
     fflush(stderr);
     usleep(100);
 

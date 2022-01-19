@@ -55,6 +55,9 @@ where streams are define as:
 * `export SHIBUYA_AVX=1` to use AVX instructions for host streams
 * `export SHIBUYA_AVX_NON_TEMPORAL=1` to use AVX instructions with non-temporal hint for host streams
 
+If both `SHIBUYA_AVX` and `SHIBUYA_AVX_NON_TEMPORAL` are set, non-temporal stores are used.\
+Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions without the non-temporal hint.
+
 ### Examples of Streams
 
 * `C0-C-N0-N0`

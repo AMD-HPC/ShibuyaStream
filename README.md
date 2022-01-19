@@ -50,7 +50,7 @@ where streams are define as:
                                                    # of the core controlling the device (only for device streams)
 ```
 
-## Environment Options
+### Environment Options
 
 * `export SHIBUYA_AVX=1` to use AVX instructions for host streams
 * `export SHIBUYA_AVX_NON_TEMPORAL=1` to use AVX instructions with non-temporal hint for host streams

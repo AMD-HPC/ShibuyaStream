@@ -13,7 +13,7 @@ CUDA_PATH ?= /usr/local/cuda
 NVCC       = ${CUDA_PATH}/bin/nvcc
 NV_FLAGS   = --x cu
 
-CXXFLAGS  = -O3 -std=c++11
+CXXFLAGS  = -O3 -std=c++11 -mavx
 LIBS      = -lnuma
 
 rocm: $(OBJ)

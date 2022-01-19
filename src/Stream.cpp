@@ -5,7 +5,8 @@
 /// \author     Jakub Kurzak
 /// \copyright  Advanced Micro Devices, Inc.
 ///
-#include "HostStream.h"
+#include "AVXHostStream.h"
+#include "NonTemporalAVXHostStream.h"
 #include "DeviceStream.h"
 
 template <typename T>
@@ -98,11 +99,24 @@ Stream<T>::make(std::string const& label,
 
     switch (hardware_char) {
         case 'C':
-            return new HostStream<T>(label,
-                                     hardware_id,
-                                     Workload(workload_char),
-                                     length, duration,
-                                     alpha, a, b, c);
+            if (std::getenv("SHIBUYA_AVX_NON_TEMPORAL") != nullptr)
+                return new NonTemporalAVXHostStream<T>(label,
+                                                       hardware_id,
+                                                       Workload(workload_char),
+                                                       length, duration,
+                                                       alpha, a, b, c);
+            else if (std::getenv("SHIBUYA_AVX") != nullptr)
+                return new AVXHostStream<T>(label,
+                                            hardware_id,
+                                            Workload(workload_char),
+                                            length, duration,
+                                            alpha, a, b, c);
+            else
+                return new HostStream<T>(label,
+                                         hardware_id,
+                                         Workload(workload_char),
+                                         length, duration,
+                                         alpha, a, b, c);
         case 'D':
             return new DeviceStream<T>(label,
                                        hardware_id, host_core_id,

@@ -74,7 +74,6 @@ void run(int argc, char** argv)
             streams[i]->run();
             streams[i]->test();
         });
-
     for (auto& thread : threads)
         thread.join();
 
@@ -85,27 +84,20 @@ void run(int argc, char** argv)
             max_time = end_time;
         }
     }
-    fprintf(stderr, "%lf max time\n", max_time);
 
-    double min_interval = std::numeric_limits<double>::infinity();
-    for (auto const& stream : streams) {
-        double interval;
-        interval = stream->minInterval();
-        interval = std::log10(interval);
-        interval = std::floor(interval);
-        interval = std::pow(10.0, interval);
-        if (interval < min_interval)
-            min_interval = interval;
+    // Set output interval.
+    double interval = 1.0;
+    if (std::getenv("SHIBUYA_OUTPUT_INTERVAL") != nullptr) {
+        interval = std::atof(std::getenv("SHIBUYA_OUTPUT_INTERVAL"));
+        ASSERT(interval > 0.0);
     }
-    const int max_samples = 1000;
-    if (max_time/min_interval > max_samples) {
-        min_interval = max_time/max_samples;
-    }
-    fprintf(stderr, "%lf min interval\n", min_interval);
+
+    fprintf(stderr, "%lf max time\n", max_time);
+    fprintf(stderr, "%lf interval\n", interval);
     fflush(stderr);
     usleep(100);
 
-    Report report(max_time, min_interval);
+    Report report(max_time, interval);
     for (auto const& stream : streams)
         report.addTimeline(*stream);
     report.print();

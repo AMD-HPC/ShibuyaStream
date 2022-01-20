@@ -50,14 +50,6 @@ where streams are define as:
                                                    # of the core controlling the device (only for device streams)
 ```
 
-### Environment Options
-
-* `export SHIBUYA_AVX=1` to use AVX instructions for host streams
-* `export SHIBUYA_AVX_NON_TEMPORAL=1` to use AVX instructions with non-temporal hint for host streams
-
-If both `SHIBUYA_AVX` and `SHIBUYA_AVX_NON_TEMPORAL` are set, non-temporal stores are used.\
-Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions without the non-temporal hint.
-
 ### Examples of Streams
 
 * `C0-C-N0-N0`
@@ -77,6 +69,24 @@ Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions without th
   * four cores simultaneously making copies of size 128 MB for 3 seconds in NUMA node 0
 * `./shibuya 1024 5 D0-H-D0-D1-0 D1-H-D1-D2-1 D2-H-D2-D3-2 D3-H-D3-D0-3`
   * four devices simultaneously making copies, using `hipMemcpy()`, of size 1 GB for 5 seconds in a round-robin fashion
+
+### Environment Settings
+
+#### AVX Options
+
+* `export SHIBUYA_AVX=1` to use AVX instructions for host streams.
+* `export SHIBUYA_AVX_NON_TEMPORAL=1` to use AVX instructions with non-temporal hint for host streams.
+
+If both `SHIBUYA_AVX` and `SHIBUYA_AVX_NON_TEMPORAL` are set, non-temporal stores are used.\
+Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions **without** the non-temporal hint.
+
+#### Output Options
+
+When printing results, by default, the bandwidth is reported at one second intervals.\
+Use `SHIBUYA_OUTPUT_INTERVAL` to change the default value, e.g.:
+
+* `export SHIBUYA_OUTPUT_INTERVAL=10` to set the interval to 10 seconds.
+* `export SHIBUYA_OUTPUT_INTERVAL=0.1` to set the interval to one tenth of a second.
 
 ### Checking the Topology
 
@@ -111,6 +121,10 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
   If the same memory is the source and the destination then combined read/write bandwidth of that memory is reported.
   If the source and the destination are different, then the result is the bandwidth of the bottleneck ×2
   — either the slower memory or the interconnect.
+
+* Config is printed to stderr, while performance is printed to stdout. This makes it easy to, e.g.:
+  * `2>/dev/null` to discard stderr,
+  * `1>results.csv` to send stdout to a file.
 
 ## Help
 

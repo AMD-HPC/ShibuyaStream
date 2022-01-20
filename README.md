@@ -39,8 +39,8 @@ where streams are define as:
  |        |             location of A
  |        |             |        location of B
  |        |             |        |        location of C (only for add and triad)
- |        |             |        |        |        the core controlling the device (only for device streams)
- |        |             |        |        |        |
+ |        |             |        |        |        the core controlling the device
+ |        |             |        |        |        |       (only for device streams)
 <C|D><#>-<C|M|A|T|D|H>-<N|D><#>-<N|D><#>-<N|D><#>-<#>
  Core     Copy          NUMA     NUMA     NUMA
    Device   Multiply      Device   Device   Device

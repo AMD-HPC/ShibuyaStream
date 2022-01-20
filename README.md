@@ -34,6 +34,13 @@ The command line syntex is:
 where streams are define as:
 
 ```
+ core or device
+ |        type of operation
+ |        |             location of A
+ |        |             |        location of B
+ |        |             |        |        location of C (only for add and triad)
+ |        |             |        |        |        the core controlling the device (only for device streams)
+ |        |             |        |        |        |
 <C|D><#>-<C|M|A|T|D|H>-<N|D><#>-<N|D><#>-<N|D><#>-<#>
  Core     Copy          NUMA     NUMA     NUMA
    Device   Multiply      Device   Device   Device
@@ -41,13 +48,6 @@ where streams are define as:
                 Triad
                   Dot
                     hipMemcpy
-
- core or device executing the operation
-          type of operation
-                        location for array A
-                                 location for array B
-                                          location for array C (only for add and triad)
-                                                   # of the core controlling the device (only for device streams)
 ```
 
 ### Examples of Streams

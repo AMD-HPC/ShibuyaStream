@@ -53,14 +53,14 @@ where streams are define as:
 ### Examples of Streams
 
 * `C0-C-N0-N0`
-  * **Core 0** performs a **copy** (`B[i]=A[i]`) with A and B in **NUMA node 0**.
+  * **Core 0** performs a **copy** (`B[i] = A[i]`) with A and B in **NUMA node 0**.
 * `C2-M-N0-N2`
-  * **Core 2** performs a **multiplication** (`B[i]=alpha*A[i]`) with A in **NUMA node 0** and B in **NUMA node 2**.
+  * **Core 2** performs a **multiplication** (`B[i] = alpha*A[i]`) with A in **NUMA node 0** and B in **NUMA node 2**.
 * `D0-C-D0-D0-0`
-  * **Device 0** performs a **copy** (`B[i]=A[i]`) with A and B in the **memory of device 0**.
+  * **Device 0** performs a **copy** (`B[i] = A[i]`) with A and B in the **memory of device 0**.
     The execution is controlled by core 0.
 * `D0-T-D0-D0-D1-8`
-  * **Device 0** performs a **triad** (`C[i]=alpha*A[i]+B[i]`) with A and B in the **memory of device 0** and C in the **memory of device 1**.
+  * **Device 0** performs a **triad** (`C[i] = alpha*A[i]+B[i]`) with A and B in the **memory of device 0** and C in the **memory of device 1**.
     The execution is controlled by core 8.
 
 ### Examples of command lines

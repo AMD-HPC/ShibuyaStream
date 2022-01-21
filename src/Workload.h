@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 /// \file
 /// \brief      Workload class declaration and inline routines
-/// \date       2020-2021
+/// \date       2020-2022
 /// \author     Jakub Kurzak
 /// \copyright  Advanced Micro Devices, Inc.
 ///

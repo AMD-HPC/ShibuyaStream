@@ -27,13 +27,15 @@
 ///
 void run(int argc, char** argv)
 {
+    // Print number of CPUs and NUMA nodes.
     ASSERT(numa_available() != -1, "NUMA not available.");
+    fprintf(stderr, "\033[38;5;66m");
     int num_cpus = numa_num_configured_cpus();
-    fprintf(stderr, "%3d CPUs\n", num_cpus);
+    fprintf(stderr, "%3d CPU%s\n", num_cpus, num_cpus > 1 ? "s" : "");
+    int num_nodes = numa_num_configured_nodes();
+    fprintf(stderr, "%3d NUMA node%s\n", num_nodes, num_nodes > 1 ? "s" : "");
 
-    int numa_nodes = numa_num_configured_nodes();
-    fprintf(stderr, "%3d NUMA nodes\n", numa_nodes);
-
+    // Print NUMA nodes' info.
     struct bitmask* bitmask;
     bitmask = numa_get_mems_allowed();
     for (int i = 0; i < numa_num_possible_nodes(); ++i) {
@@ -44,30 +46,35 @@ void run(int argc, char** argv)
         }
     }
 
+    // Print number of GPUs.
     int num_gpus;
     HIP_CALL(hipGetDeviceCount(&num_gpus), "Getting the device count failed.");
-    fprintf(stderr, "%3d GPUs\n", num_gpus);
+    fprintf(stderr, "%3d GPU%s\n", num_gpus, num_gpus > 1 ? "s" : "");
 
-    /// \todo Print command-line syntax.
+    // Set length of arrays.
     ASSERT(argc > 3, "Invalid command line.");
-    // size in MB
     std::size_t array_size = std::atol(argv[1])*1024*1024;
     std::size_t array_length = array_size/sizeof(double);
-    // duration in seconds
+
+    // Set test duration.
     double test_duration = std::atof(argv[2]);
 
+    // Create streams.
     double alpha = 1.0f;
     std::vector<Stream<double>*> streams(argc-3);
     for (int i = 3; i < argc; ++i)
         streams[i-3] = Stream<double>::make(argv[i], array_length,
                                             test_duration, alpha);
 
-    fprintf(stderr, "%3ld streams\n", streams.size());
+    // Print streams' info.
+    fprintf(stderr, "%3ld stream%s\n", streams.size(),
+            streams.size() > 1 ? "s" : "");
     for (auto const& stream : streams) {
         stream->printInfo();
         fprintf(stderr, "\n");
     }
 
+    // Launch the run, test, join thrads.
     std::vector<std::thread> threads(streams.size());
     for (int i = 0; i < streams.size(); ++i)
         threads[i] = std::thread([&, i] {
@@ -77,13 +84,20 @@ void run(int argc, char** argv)
     for (auto& thread : threads)
         thread.join();
 
+    // Find min, max, end time.
+    double min_time = std::numeric_limits<double>::infinity();
     double max_time = 0.0;
+    double end_time = 0.0;
     for (auto const& stream : streams) {
-        double end_time = stream->maxTime();
-        if (end_time > max_time) {
-            max_time = end_time;
-        }
+        if (stream->minTime() < min_time) min_time = stream->minTime();
+        if (stream->maxTime() > max_time) max_time = stream->maxTime();
+        if (stream->endTime() > end_time) end_time = stream->endTime();
     }
+    fprintf(stderr, "min time:\t%lf\n", min_time);
+    fprintf(stderr, "max time:\t%lf\n", max_time);
+    fprintf(stderr, "end time:\t%lf\n", end_time);
+    fflush(stderr);
+    usleep(100);
 
     // Set output interval.
     double interval = 1.0;
@@ -92,12 +106,9 @@ void run(int argc, char** argv)
         ASSERT(interval > 0.0);
     }
 
-    fprintf(stderr, "%lf max time\n", max_time);
-    fprintf(stderr, "%lf interval\n", interval);
-    fflush(stderr);
-    usleep(100);
-
-    Report report(max_time, interval);
+    // Print performance report.
+    fprintf(stderr, "\033[0m");
+    Report report(end_time, interval);
     for (auto const& stream : streams)
         report.addTimeline(*stream);
     report.print();

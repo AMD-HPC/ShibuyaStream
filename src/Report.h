@@ -75,7 +75,7 @@ inline
 void
 Report::print()
 {
-    printf("time,");
+    printf("timestamp,");
     for (auto const& label : labels_)
         printf("%s,", label.c_str());
     printf("total\n");

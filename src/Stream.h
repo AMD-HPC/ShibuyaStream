@@ -85,22 +85,38 @@ public:
     virtual void printInfo() = 0;
 
     /// Returns the value of the last timestamp in the series.
-    double maxTime() { return timestamps_[timestamps_.size()-1]; }
+    double endTime() { return timestamps_[timestamps_.size()-1]; }
 
     /// Finds the minimum interval between timestamps.
     /// If only one timestamp exists, returns that timestamp,
     /// i.e., the time elapsed from the start of the run to the end
     /// of the one and only transfer performed.
-    double minInterval()
+    double minTime()
     {
-        double min_interval = timestamps_[0];
+        double min_time = timestamps_[0];
         for (int i = 1; i < timestamps_.size(); ++i) {
             double interval = timestamps_[i]-timestamps_[i-1];
-            if (interval < min_interval) {
-                min_interval = interval;
+            if (interval < min_time) {
+                min_time = interval;
             }
         }
-        return min_interval;
+        return min_time;
+    }
+
+    /// Finds the maximum interval between timestamps.
+    /// If only one timestamp exists, returns that timestamp,
+    /// i.e., the time elapsed from the start of the run to the end
+    /// of the one and only transfer performed.
+    double maxTime()
+    {
+        double max_time = timestamps_[0];
+        for (int i = 1; i < timestamps_.size(); ++i) {
+            double interval = timestamps_[i]-timestamps_[i-1];
+            if (interval > max_time) {
+                max_time = interval;
+            }
+        }
+        return max_time;
     }
 
     /// Prints the timestamps and the corresponding bandwidths.

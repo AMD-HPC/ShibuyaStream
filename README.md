@@ -31,7 +31,7 @@ The command line syntex is:
           ...
 ```
 
-where streams are define as:
+where streams are defined as:
 
 ```
  core or device

@@ -21,7 +21,7 @@
 
 ## Usage
 
-The command line syntex is:
+The command line syntax is:
 
 ```
 ./shibuya <SIZE>     size of arrays in megabytes

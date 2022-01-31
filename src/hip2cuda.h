@@ -7,8 +7,11 @@
 ///
 #define hipDeviceSynchronize        cudaDeviceSynchronize
 #define hipDeviceEnablePeerAccess   cudaDeviceEnablePeerAccess
+#define hipError_t                  cudaError_t
 #define hipFree                     cudaFree
 #define hipGetDeviceCount           cudaGetDeviceCount
+#define hipGetErrorName             cudaGetErrorName
+#define hipGetErrorString           cudaGetErrorString
 #define hipHostGetDevicePointer     cudaHostGetDevicePointer
 #define hipHostMalloc               cudaMallocHost
 #define hipHostRegister             cudaHostRegister

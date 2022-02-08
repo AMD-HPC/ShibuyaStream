@@ -24,10 +24,10 @@
 The command line syntax is:
 
 ```
-./shibuya <SIZE>     size of arrays in megabytes
-          <TIME>     test duration in seconds
-          <STREAM_1>
-          <STREAM_2>
+./shibuya  SIZE      size of arrays in megabytes
+           TIME      test duration in seconds
+          [STREAM_1]
+          [STREAM_2]
           ...
 ```
 

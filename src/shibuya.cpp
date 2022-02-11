@@ -29,7 +29,7 @@ void run(int argc, char** argv)
 {
     // Print number of CPUs and NUMA nodes.
     ASSERT(numa_available() != -1, "NUMA not available.");
-    fprintf(stderr, "\033[38;5;66m");
+    fprintf(stderr, "\033[38;5;30m\n");
     int num_cpus = numa_num_configured_cpus();
     fprintf(stderr, "%3d CPU%s\n", num_cpus, num_cpus > 1 ? "s" : "");
     int num_nodes = numa_num_configured_nodes();
@@ -107,7 +107,7 @@ void run(int argc, char** argv)
     }
 
     // Print performance report.
-    fprintf(stderr, "\033[0m");
+    fprintf(stderr, "\033[0m\n");
     Report report(end_time, interval);
     for (auto const& stream : streams)
         report.addTimeline(*stream);

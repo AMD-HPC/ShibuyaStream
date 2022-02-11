@@ -97,4 +97,5 @@ Report::print()
         time += interval_;
         printf("\n");
     }
+    printf("\n");
 }

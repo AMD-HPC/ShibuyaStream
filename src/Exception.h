@@ -53,7 +53,7 @@ protected:
 /// Report errors.
 #define ERROR(msg) \
 { \
-    throw Exception(std::string("\033[38;5;200mERROR:\033[38;5;140m ")+ \
+    throw Exception(std::string("\033[38;5;200mERROR:\033[38;5;255m ")+ \
                     msg, __func__, __FILE__, __LINE__); \
 }
 
@@ -67,7 +67,7 @@ public:
                            const char* func,
                            const char* file,
                            int line)
-        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;140m ")+
+        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;255m ")+
                     "Condition '"+condition+"' is true.",
                     func, file, line) {}
 
@@ -76,7 +76,7 @@ public:
                            const char* func,
                            const char* file,
                            int line)
-        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;140m ")+
+        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;255m ")+
                     description+" Condition '"+condition+"' is true.",
                     func, file, line) {}
 };
@@ -99,7 +99,7 @@ public:
                             const char* func,
                             const char* file,
                             int line)
-        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;140m ")+
+        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;255m ")+
                     "Assertion '"+assertion+"' is false.",
                     func, file, line) {}
 
@@ -108,7 +108,7 @@ public:
                             const char* func,
                             const char* file,
                             int line)
-        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;140m ")+
+        : Exception(std::string("\033[38;5;200mERROR:\033[38;5;255m ")+
                     description+" Assertion '"+assertion+"' is false.",
                     func, file, line) {}
 };

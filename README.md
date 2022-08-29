@@ -88,6 +88,18 @@ Use `SHIBUYA_OUTPUT_INTERVAL` to change the default value, e.g.:
 * `export SHIBUYA_OUTPUT_INTERVAL=10` to set the interval to 10 seconds.
 * `export SHIBUYA_OUTPUT_INTERVAL=0.1` to set the interval to one tenth of a second.
 
+#### Correctness Testing
+
+ShibuyaStream is primarily a bandwidth benchmark.\
+By default, correctness is not checked when measuring bandwidth.\
+Only a simple sanity check is done after bandwidth measurements are finished.\
+More rigorous correctness testing can be enabled using the `SHIBUYA_STRINGENT` flag.
+
+* `export SHIBUYA_STRINGENT=1` to switch from measuring bandwidth to stringent correctness testing,
+* `unset SHIBUYA_STRINGENT` to switch from testing correctness to measuring bandwidth.
+
+Bandwidth is not measured when testing correctness, as the measurement would not be accurate.
+
 ### Checking the Topology
 
 The topology of the system can be checked using [hwloc][].

@@ -225,6 +225,50 @@ Stream<double>::test();
 
 //------------------------------------------------------------------------------
 /// \brief
+///
+template <typename T>
+void
+Stream<T>::stress()
+{
+    switch (workload_.type()) {
+        case Workload::Type::Mul:
+            ERROR("Multiply (M) not supported by SHIBUYA_STRINGENT.");
+            return;
+        case Workload::Type::Add:
+            ERROR("Add (A) not supported by SHIBUYA_STRINGENT.");
+            return;
+        case Workload::Type::Triad:
+            ERROR("Triad (T) not supported by SHIBUYA_STRINGENT.");
+            return;
+        case Workload::Type::Dot:
+            ERROR("Dot (D) not supported by SHIBUYA_STRINGENT.");
+            return;
+        default: break;
+    }
+
+    setAffinity();
+    double timestamp;
+    double count = 0.0;
+    do {
+        a_->init(count, 1.0);
+        dispatch();
+        b_->check(count, 1.0);
+        ++count;
+
+        auto stop = std::chrono::high_resolution_clock::now();
+        timestamp =
+            std::chrono::duration_cast<
+                std::chrono::duration<double>>(stop-beginning_).count();
+    }
+    while (timestamp < duration_);
+}
+
+template
+void
+Stream<double>::stress();
+
+//------------------------------------------------------------------------------
+/// \brief
 ///     Scans the label, i.e., the command line definition of the stream.
 ///
 /// \returns

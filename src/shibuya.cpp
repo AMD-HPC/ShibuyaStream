@@ -74,15 +74,32 @@ void run(int argc, char** argv)
         fprintf(stderr, "\n");
     }
 
+    if (std::getenv("SHIBUYA_STRINGENT") == nullptr)
+        fprintf(stderr, "Bandwidth benchmarking...\n");
+    else
+        fprintf(stderr, "Stringent correctness testing...\n");
+
     // Launch the run, test, join thrads.
     std::vector<std::thread> threads(streams.size());
     for (int i = 0; i < streams.size(); ++i)
         threads[i] = std::thread([&, i] {
-            streams[i]->run();
-            streams[i]->test();
+            if (std::getenv("SHIBUYA_STRINGENT") == nullptr) {
+                streams[i]->run();
+                streams[i]->test();
+            }
+            else {
+                streams[i]->stress();
+            }
         });
     for (auto& thread : threads)
         thread.join();
+
+    // If SHIBUYA_STRINGENT, print SUCCESS and exit.
+    if (std::getenv("SHIBUYA_STRINGENT") != nullptr) {
+        fprintf(stderr, "\033[0m\n");
+        printf("SUCCESS\n\n");
+        exit(EXIT_SUCCESS);
+    }
 
     // Find min, max, end time.
     double min_time = std::numeric_limits<double>::infinity();

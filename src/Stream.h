@@ -81,6 +81,7 @@ public:
 
     void run();
     void test();
+    void stress();
 
     virtual void printInfo() = 0;
 

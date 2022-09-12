@@ -98,7 +98,8 @@ More rigorous correctness testing can be enabled using the `SHIBUYA_STRINGENT` f
 * `export SHIBUYA_STRINGENT=1` to switch from measuring bandwidth to stringent correctness testing,
 * `unset SHIBUYA_STRINGENT` to switch from testing correctness to measuring bandwidth.
 
-Bandwidth is not measured when testing correctness, as the measurement would not be accurate.
+Bandwidth is not measured when testing correctness, as the measurement would not be accurate.\
+The stringent correctness test only supports the copy operation (`C`).
 
 ### Checking the Topology
 

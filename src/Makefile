@@ -6,11 +6,11 @@ EXE = shibuya
 ROCM_PATH ?= /opt/rocm
 HIPCC      = ${ROCM_PATH}/bin/hipcc
 
-AMDGPU_TARGET ?= $(shell ${ROCM_PATH}/bin/rocminfo | grep -m 1 -o -P 'gfx.{0,4}')
-AMDGPU_TARGET := $(if $(AMDGPU_TARGET),$(AMDGPU_TARGET),gfx906,gfx908,gfx90a)
+OFFLOAD_ARCH ?= $(shell ${ROCM_PATH}/bin/rocminfo | grep -m 1 -o -P 'gfx.{0,4}')
+OFFLOAD_ARCH := $(if $(OFFLOAD_ARCH),$(OFFLOAD_ARCH),gfx906,gfx908,gfx90a)
 
 CXXFLAGS  = -O3 -std=c++11 -mavx
-CXXFLAGS += --amdgpu-target=${AMDGPU_TARGET}
+CXXFLAGS += --offload-arch=${OFFLOAD_ARCH}
 
 CUDA_PATH  ?= /usr/local/cuda
 NVCC        = ${CUDA_PATH}/bin/nvcc

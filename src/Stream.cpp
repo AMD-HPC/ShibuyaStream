@@ -8,6 +8,7 @@
 #include "AVXHostStream.h"
 #include "NonTemporalAVXHostStream.h"
 #include "DeviceStream.h"
+#include "NonTemporalDeviceStream.h"
 
 template <typename T>
 std::chrono::high_resolution_clock::time_point Stream<T>::beginning_ =
@@ -118,11 +119,18 @@ Stream<T>::make(std::string const& label,
                                          length, duration,
                                          alpha, a, b, c);
         case 'D':
-            return new DeviceStream<T>(label,
-                                       hardware_id, host_core_id,
-                                       Workload(workload_char),
-                                       length, duration,
-                                       alpha, a, b, c);
+            if (std::getenv("SHIBUYA_DEVICE_NON_TEMPORAL") != nullptr)
+                return new NonTemporalDeviceStream<T>(label,
+                                                      hardware_id, host_core_id,
+                                                      Workload(workload_char),
+                                                      length, duration,
+                                                      alpha, a, b, c);
+            else
+                return new DeviceStream<T>(label,
+                                           hardware_id, host_core_id,
+                                           Workload(workload_char),
+                                           length, duration,
+                                           alpha, a, b, c);
         default:
             ERROR("Invalid device letter.");
     }

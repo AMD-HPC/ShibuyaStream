@@ -146,11 +146,15 @@ public:
         fprintf(stderr, "\thost core%4d", host_core_id_);
     }
 
-private:
+protected:
     /// work-group size for streaming kernels
     static const int group_size_ = 1024;
     /// number of work-groups to launch for Dot
     static const int dot_num_groups_ = 256;
+
+    T* dot_sums_; /// partial sum from each work-group (Dot workload)
+
+private:
 
     /// Pins the controlling thread to the given core.
     /// Sets the device for the streaming workload.
@@ -293,5 +297,4 @@ private:
 
     int device_id_;    ///< device number
     int host_core_id_; ///< CPU core launching GPU operations
-    T* dot_sums_;      ///< partial sum from each work-group (Dot workload)
 };

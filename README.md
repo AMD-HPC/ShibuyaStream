@@ -80,6 +80,10 @@ where streams are defined as:
 If both `SHIBUYA_AVX` and `SHIBUYA_AVX_NON_TEMPORAL` are set, non-temporal stores are used.\
 Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions **without** the non-temporal hint.
 
+#### Device Options
+
+* `export SHIBUYA_DEVICE_NON_TEMPORAL=1` to use LLVM non-temporal memory access builtins.
+
 #### Output Options
 
 When printing results, by default, the bandwidth is reported at one second intervals.\

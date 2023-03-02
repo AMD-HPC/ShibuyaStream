@@ -82,7 +82,7 @@ Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions **without*
 
 #### Device Options
 
-* `export SHIBUYA_DEVICE_NON_TEMPORAL=1` to use LLVM non-temporal memory access builtins.
+* `export SHIBUYA_DEVICE_NON_TEMPORAL=1` to use LLVM non-temporal memory access builtins in device kernels.
 
 #### Output Options
 

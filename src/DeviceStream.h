@@ -12,36 +12,38 @@
 // Workaround for NVCC, which does not support __global__ static members.
 #if defined(__NVCC__)
 template <typename T>
-__global__ void copy_kernel(T const* a, T* b)
+__global__ void copy_kernel(T const* __restrict a, T* __restrict b)
 {
     const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
     b[i] = a[i];
 }
 
 template <typename T>
-__global__ void mul_kernel(T alpha, T const* a, T* b)
+__global__ void mul_kernel(T alpha, T const* __restrict a, T* __restrict b)
 {
     const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
     b[i] = alpha*a[i];
 }
 
 template <typename T>
-__global__ void add_kernel(T const* a, T const* b, T* c)
+__global__ void add_kernel(T const* __restrict a, T const* __restrict b,
+                           T* __restrict c)
 {
     const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
     c[i] = a[i]+b[i];
 }
 
 template <typename T>
-__global__ void triad_kernel(T alpha, T const* a, T const* b, T* c)
+__global__ void triad_kernel(T alpha, T const* __restrict a,
+                             T const* __restrict b, T* __restrict c)
 {
     const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
     c[i] = alpha*a[i] + b[i];
 }
 
 template <typename T>
-__global__ void dot_kernel(T const* a, T* b,
-                                  std::size_t length, T* dot_sums)
+__global__ void dot_kernel(T const* __restrict a, T* __restrict b,
+                           std::size_t length, T* __restrict dot_sums)
 {
     const int group_size_ = 1024;
     __shared__ T sums[group_size_];
@@ -241,28 +243,31 @@ private:
 // __global__ static members are okay for HIPCC.
 #if defined(__HIPCC__)
     /// Implements the Copy kernel.
-    static __global__ void copy_kernel(T const* a, T* b)
+    static __global__ void copy_kernel(T const* __restrict a, T* __restrict b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         b[i] = a[i];
     }
 
     /// Implements the Mul kernel.
-    static __global__ void mul_kernel(T alpha, T const* a, T* b)
+    static __global__ void mul_kernel(T alpha,
+                                      T const* __restrict a, T* __restrict b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         b[i] = alpha*a[i];
     }
 
     /// Implements the Add kernel.
-    static __global__ void add_kernel(T const* a, T const* b, T* c)
+    static __global__ void add_kernel(T const* __restrict a,
+                                      T const* __restrict b, T* __restrict c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         c[i] = a[i]+b[i];
     }
 
     /// Implements the Triad kernel.
-    static __global__ void triad_kernel(T alpha, T const* a, T const* b, T* c)
+    static __global__ void triad_kernel(T alpha, T const* __restrict a,
+                                        T const* __restrict b, T* __restrict c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         c[i] = alpha*a[i] + b[i];
@@ -271,8 +276,9 @@ private:
     /// Implements the Dot kernel.
     /// First, each work-item computes its partial sum.
     /// Then, each work-group reduces the sums from its threads.
-    static __global__ void dot_kernel(T const* a, T* b,
-                                      std::size_t length, T* dot_sums)
+    static __global__ void dot_kernel(T const* __restrict a, T* __restrict b,
+                                      std::size_t length,
+                                      T* __restrict dot_sums)
     {
         __shared__ T sums[group_size_];
 

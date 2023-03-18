@@ -137,14 +137,17 @@ private:
     }
 
     /// Implements the Copy kernel.
-    static __global__ void non_temporal_copy_kernel(T const* a, T* b)
+    static __global__ void non_temporal_copy_kernel(T const* __restrict a,
+                                                    T* __restrict b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i]), &b[i]);
     }
 
     /// Implements the Mul kernel.
-    static __global__ void non_temporal_mul_kernel(T alpha, T const* a, T* b)
+    static __global__ void non_temporal_mul_kernel(T alpha,
+                                                   T const* __restrict a,
+                                                   T* __restrict b)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])*alpha,
@@ -152,7 +155,9 @@ private:
     }
 
     /// Implements the Add kernel.
-    static __global__ void non_temporal_add_kernel(T const* a, T const* b, T* c)
+    static __global__ void non_temporal_add_kernel(T const* __restrict a,
+                                                   T const* __restrict b,
+                                                   T* __restrict c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])+
@@ -161,7 +166,8 @@ private:
 
     /// Implements the Triad kernel.
     static __global__
-    void non_temporal_triad_kernel(T alpha, T const* a, T const* b, T* c)
+    void non_temporal_triad_kernel(T alpha, T const* __restrict a,
+                                   T const* __restrict b, T* __restrict c)
     {
         const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])*alpha +
@@ -172,8 +178,8 @@ private:
     /// First, each work-item computes its partial sum.
     /// Then, each work-group reduces the sums from its threads.
     static __global__
-    void non_temporal_dot_kernel(T const* a, T* b,
-                                 std::size_t length, T* dot_sums)
+    void non_temporal_dot_kernel(T const* __restrict a, T* __restrict b,
+                                 std::size_t length, T* __restrict dot_sums)
     {
         __shared__ T sums[group_size_];
 

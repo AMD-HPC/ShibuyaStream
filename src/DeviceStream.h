@@ -72,7 +72,7 @@ __global__ void dot_kernel(T const* __restrict a, T* __restrict b,
 ///     Represents a streaming workload executed by a GPU.
 ///     Inherits from the Stream class.
 ///
-template <typename T>
+template <typename T, int elements_per_item, int chunks_per_group>
 class DeviceStream: public Stream<T> {
 public:
     /// \brief
@@ -114,6 +114,7 @@ public:
                  Array<T>* b,
                  Array<T>* c = nullptr)
         : Stream<T>(label, workload, length, duration, alpha, a, b, c),
+          num_groups_(length/group_size_/elements_per_item/chunks_per_group),
           device_id_(device_id), host_core_id_(host_core_id)
     {
         this->a_->registerMem();
@@ -122,7 +123,7 @@ public:
             workload.type() == Workload::Type::Triad)
             this->c_->registerMem();
 
-        HIP_CALL(hipHostMalloc(&dot_sums_, sizeof(T)*dot_num_groups_),
+        HIP_CALL(hipHostMalloc(&dot_sums_, sizeof(T)*num_groups_),
                  "Allocation of page-locked memory failed.");
     }
 
@@ -150,14 +151,12 @@ public:
 
 protected:
     /// work-group size for streaming kernels
-    static const int group_size_ = 1024;
-    /// number of work-groups to launch for Dot
-    static const int dot_num_groups_ = 256;
+    static constexpr int group_size_ = 1024;
 
-    T* dot_sums_; /// partial sum from each work-group (Dot workload)
+    int num_groups_; /// number of groups for streaming kernels
+    T* dot_sums_;    /// partial sum from each work-group (Dot workload)
 
 private:
-
     /// Pins the controlling thread to the given core.
     /// Sets the device for the streaming workload.
     void setAffinity() override
@@ -172,7 +171,7 @@ private:
     /// Launches the GPU Copy kernel.
     void copy() override
     {
-        copy_kernel<<<dim3(this->length_/group_size_),
+        copy_kernel<<<dim3(num_groups_),
                       dim3(group_size_),
                       0, 0>>>(
             this->a_->device_ptr(),
@@ -184,7 +183,7 @@ private:
     /// Launches the GPU Mul kernel.
     void mul() override
     {
-        mul_kernel<<<dim3(this->length_/group_size_),
+        mul_kernel<<<dim3(num_groups_),
                      dim3(group_size_),
                      0, 0>>>(
             this->alpha_,
@@ -197,7 +196,7 @@ private:
     /// Launches the GPU Add kernel.
     void add() override
     {
-        add_kernel<<<dim3(this->length_/group_size_),
+        add_kernel<<<dim3(num_groups_),
                      dim3(group_size_),
                      0, 0>>>(
             this->a_->device_ptr(),
@@ -210,7 +209,7 @@ private:
     /// Launches the GPU Triad kernel.
     void triad() override
     {
-        triad_kernel<<<dim3(this->length_/group_size_),
+        triad_kernel<<<dim3(num_groups_),
                        dim3(group_size_),
                        0, 0>>>(
             this->alpha_,
@@ -225,78 +224,102 @@ private:
     /// Reduces the partial sums on the host.
     void dot() override
     {
-        dot_kernel<<<dim3(dot_num_groups_),
+        dot_kernel<<<dim3(num_groups_),
                      dim3(group_size_),
                      0, 0>>>(
             this->a_->device_ptr(),
             this->b_->device_ptr(),
-            this->length_,
             this->dot_sums_);
         HIP_CALL(hipDeviceSynchronize(),
                  "Device synchronization failed.");
 
         this->dot_sum_ = T(0.0);
-        for (int i = 0; i < dot_num_groups_; ++i)
+        for (int i = 0; i < num_groups_; ++i)
             this->dot_sum_ += this->dot_sums_[i];
     }
 
 // __global__ static members are okay for HIPCC.
 #if defined(__HIPCC__)
+    // Return the offset for each group.
+    static __device__ uint32_t offset()
+    {
+        return (blockDim.x*blockIdx.x + threadIdx.x)*elements_per_item;
+    }
+
+    // Return the stride for each group.
+    static __device__ uint32_t stride()
+    {
+        return gridDim.x*blockDim.x*elements_per_item;
+    }
+
     /// Implements the Copy kernel.
     static __global__ void copy_kernel(T const* __restrict a, T* __restrict b)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        b[i] = a[i];
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                b[offs + j*strd + i] = a[offs + j*strd + i];
     }
 
     /// Implements the Mul kernel.
     static __global__ void mul_kernel(T alpha,
                                       T const* __restrict a, T* __restrict b)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        b[i] = alpha*a[i];
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                b[offs + j*strd + i] = alpha*a[offs + j*strd + i];
     }
 
     /// Implements the Add kernel.
     static __global__ void add_kernel(T const* __restrict a,
                                       T const* __restrict b, T* __restrict c)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        c[i] = a[i]+b[i];
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                c[offs + j*strd + i] = a[offs + j*strd + i]
+                                     + b[offs + j*strd + i];
     }
 
     /// Implements the Triad kernel.
     static __global__ void triad_kernel(T alpha, T const* __restrict a,
                                         T const* __restrict b, T* __restrict c)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        c[i] = alpha*a[i] + b[i];
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                c[offs + j*strd + i] = a[offs + j*strd + i]*alpha
+                                     + b[offs + j*strd + i];
     }
 
     /// Implements the Dot kernel.
     /// First, each work-item computes its partial sum.
     /// Then, each work-group reduces the sums from its threads.
     static __global__ void dot_kernel(T const* __restrict a, T* __restrict b,
-                                      std::size_t length,
                                       T* __restrict dot_sums)
     {
         __shared__ T sums[group_size_];
 
-        std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        const int thx = threadIdx.x;
+        const auto offs = offset();
+        const auto strd = stride();
+        sums[threadIdx.x] = T(0.0);
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                sums[threadIdx.x] += a[offs + j*strd + i]*b[offs + j*strd + i];
 
-        sums[thx] = T(0.0);
-        for (; i < length; i += blockDim.x*gridDim.x)
-            sums[thx] += a[i]*b[i];
-
-        for (int offset = blockDim.x/2; offset > 0; offset /= 2) {
+        for (auto i = blockDim.x/2; i > 0; i /= 2) {
             __syncthreads();
-            if (thx < offset) {
-                sums[thx] += sums[thx+offset];
+            if (threadIdx.x < i) {
+                sums[threadIdx.x] += sums[threadIdx.x+i];
             }
         }
 
-        if (thx == 0)
+        if (threadIdx.x == 0)
             dot_sums[blockIdx.x] = sums[0];
     }
 #endif

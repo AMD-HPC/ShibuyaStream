@@ -170,6 +170,18 @@ protected:
     std::vector<double> bandwidths_; ///< bandwidths in GBPS
 
 private:
+    static Stream<T>* make_host(std::string const& label,
+                                int hardware_id, Workload workload,
+                                std::size_t length, double duration,
+                                T alpha, Array<T>* a, Array<T>* b,
+                                Array<T>* c);
+
+    static Stream<T>* make_device(
+        std::string const& label,
+        int hardware_id, int host_core_id,
+        Workload workload, std::size_t length, double duration,
+        T alpha, Array<T>* a, Array<T>* b, Array<T>* c);
+
     static void scanString(std::string const& string,
                            char& hardware_char, int& hardware_id,
                            char& workload_char,

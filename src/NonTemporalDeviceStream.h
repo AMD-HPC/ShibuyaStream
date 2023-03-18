@@ -15,8 +15,9 @@
 ///     Inherits from the DeviceStream class.
 ///     Uses LLVM intrinsics for non-temporal loads and stores.
 ///
-template <typename T>
-class NonTemporalDeviceStream: public DeviceStream<T> {
+template <typename T, int elements_per_item, int chunks_per_group>
+class NonTemporalDeviceStream: public DeviceStream<
+    T, elements_per_item, chunks_per_group> {
 public:
     /// \brief
     ///     Creates a DeviceStream object.
@@ -56,19 +57,21 @@ public:
                  Array<T>* a,
                  Array<T>* b,
                  Array<T>* c = nullptr)
-        : DeviceStream<T>(label, device_id, host_core_id, workload, length,
-                          duration, alpha, a, b, c) {}
+        : DeviceStream<T, elements_per_item, chunks_per_group>(
+            label, device_id, host_core_id,
+            workload, length, duration,
+            alpha, a, b, c) {}
 
     ~NonTemporalDeviceStream() {}
 
 private:
-    static const int group_size_ = DeviceStream<T>::group_size_;
-    static const int dot_num_groups_ = DeviceStream<T>::dot_num_groups_;
+    static constexpr int group_size_ =
+        DeviceStream<T, elements_per_item, chunks_per_group>::group_size_;
 
     /// Launches the GPU Copy kernel.
     void copy() override
     {
-        non_temporal_copy_kernel<<<dim3(this->length_/group_size_),
+        non_temporal_copy_kernel<<<dim3(this->num_groups_),
                                    dim3(group_size_),
                                    0, 0>>>(
             this->a_->device_ptr(),
@@ -80,7 +83,7 @@ private:
     /// Launches the GPU Mul kernel.
     void mul() override
     {
-        non_temporal_mul_kernel<<<dim3(this->length_/group_size_),
+        non_temporal_mul_kernel<<<dim3(this->num_groups_),
                                   dim3(group_size_),
                                   0, 0>>>(
             this->alpha_,
@@ -93,7 +96,7 @@ private:
     /// Launches the GPU Add kernel.
     void add() override
     {
-        non_temporal_add_kernel<<<dim3(this->length_/group_size_),
+        non_temporal_add_kernel<<<dim3(this->num_groups_),
                                   dim3(group_size_),
                                   0, 0>>>(
             this->a_->device_ptr(),
@@ -106,7 +109,7 @@ private:
     /// Launches the GPU Triad kernel.
     void triad() override
     {
-        non_temporal_triad_kernel<<<dim3(this->length_/group_size_),
+        non_temporal_triad_kernel<<<dim3(this->num_groups_),
                                     dim3(group_size_),
                                     0, 0>>>(
             this->alpha_,
@@ -121,27 +124,43 @@ private:
     /// Reduces the partial sums on the host.
     void dot() override
     {
-        non_temporal_dot_kernel<<<dim3(dot_num_groups_),
+        non_temporal_dot_kernel<<<dim3(this->num_groups_),
                                   dim3(group_size_),
                                   0, 0>>>(
             this->a_->device_ptr(),
             this->b_->device_ptr(),
-            this->length_,
             this->dot_sums_);
         HIP_CALL(hipDeviceSynchronize(),
                  "Device synchronization failed.");
 
         this->dot_sum_ = 0.0;
-        for (int i = 0; i < dot_num_groups_; ++i)
+        for (int i = 0; i < this->num_groups_; ++i)
             this->dot_sum_ += this->dot_sums_[i];
+    }
+
+    // Return the offset for each group.
+    static __device__ uint32_t offset()
+    {
+        return (blockDim.x*blockIdx.x + threadIdx.x)*elements_per_item;
+    }
+
+    // Return the stride for each group.
+    static __device__ uint32_t stride()
+    {
+        return gridDim.x*blockDim.x*elements_per_item;
     }
 
     /// Implements the Copy kernel.
     static __global__ void non_temporal_copy_kernel(T const* __restrict a,
                                                     T* __restrict b)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i]), &b[i]);
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                __builtin_nontemporal_store(
+                    __builtin_nontemporal_load(&a[offs + j*strd + i]),
+                                               &b[offs + j*strd + i]);
     }
 
     /// Implements the Mul kernel.
@@ -149,9 +168,13 @@ private:
                                                    T const* __restrict a,
                                                    T* __restrict b)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])*alpha,
-                                    &b[i]);
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                __builtin_nontemporal_store(
+                    __builtin_nontemporal_load(&a[offs + j*strd + i])*alpha,
+                                               &b[offs + j*strd + i]);
     }
 
     /// Implements the Add kernel.
@@ -159,9 +182,14 @@ private:
                                                    T const* __restrict b,
                                                    T* __restrict c)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])+
-                                    __builtin_nontemporal_load(&b[i]), &c[i]);
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                __builtin_nontemporal_store(
+                    __builtin_nontemporal_load(&a[offs + j*strd + i])+
+                    __builtin_nontemporal_load(&b[offs + j*strd + i]),
+                                               &c[offs + j*strd + i]);
     }
 
     /// Implements the Triad kernel.
@@ -169,9 +197,14 @@ private:
     void non_temporal_triad_kernel(T alpha, T const* __restrict a,
                                    T const* __restrict b, T* __restrict c)
     {
-        const std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        __builtin_nontemporal_store(__builtin_nontemporal_load(&a[i])*alpha +
-                                    __builtin_nontemporal_load(&b[i]), &c[i]);
+        const auto offs = offset();
+        const auto strd = stride();
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                __builtin_nontemporal_store(
+                    __builtin_nontemporal_load(&a[offs + j*strd + i])*alpha +
+                    __builtin_nontemporal_load(&b[offs + j*strd + i]),
+                                               &c[offs + j*strd + i]);
     }
 
     /// Implements the Dot kernel.
@@ -179,26 +212,26 @@ private:
     /// Then, each work-group reduces the sums from its threads.
     static __global__
     void non_temporal_dot_kernel(T const* __restrict a, T* __restrict b,
-                                 std::size_t length, T* __restrict dot_sums)
+                                 T* __restrict dot_sums)
     {
         __shared__ T sums[group_size_];
 
-        std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
-        const int thx = threadIdx.x;
+        const auto offs = offset();
+        const auto strd = stride();
+        sums[threadIdx.x] = T(0.0);
+        for (auto j = 0u; j < chunks_per_group; ++j)
+            for (auto i = 0u; i < elements_per_item; ++i)
+                sums[threadIdx.x] += __builtin_nontemporal_load(&a[offs + j*strd + i])*
+                                     __builtin_nontemporal_load(&b[offs + j*strd + i]);
 
-        sums[thx] = 0.0;
-        for (; i < length; i += blockDim.x*gridDim.x)
-            sums[thx] += __builtin_nontemporal_load(&a[i])*
-                         __builtin_nontemporal_load(&b[i]);
-
-        for (int offset = blockDim.x/2; offset > 0; offset /= 2) {
+        for (auto i = blockDim.x/2; i > 0; i /= 2) {
             __syncthreads();
-            if (thx < offset) {
-                sums[thx] += sums[thx+offset];
+            if (threadIdx.x < i) {
+                sums[threadIdx.x] += sums[threadIdx.x+i];
             }
         }
 
-        if (thx == 0)
+        if (threadIdx.x == 0)
             __builtin_nontemporal_store(sums[0], &dot_sums[blockIdx.x]);
     }
 };

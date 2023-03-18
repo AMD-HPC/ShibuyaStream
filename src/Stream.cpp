@@ -100,37 +100,17 @@ Stream<T>::make(std::string const& label,
 
     switch (hardware_char) {
         case 'C':
-            if (std::getenv("SHIBUYA_AVX_NON_TEMPORAL") != nullptr)
-                return new NonTemporalAVXHostStream<T>(label,
-                                                       hardware_id,
-                                                       Workload(workload_char),
-                                                       length, duration,
-                                                       alpha, a, b, c);
-            else if (std::getenv("SHIBUYA_AVX") != nullptr)
-                return new AVXHostStream<T>(label,
-                                            hardware_id,
-                                            Workload(workload_char),
-                                            length, duration,
-                                            alpha, a, b, c);
-            else
-                return new HostStream<T>(label,
-                                         hardware_id,
-                                         Workload(workload_char),
-                                         length, duration,
-                                         alpha, a, b, c);
+            return make_host(label,
+                             hardware_id,
+                             Workload(workload_char),
+                             length, duration,
+                             alpha, a, b, c);
         case 'D':
-            if (std::getenv("SHIBUYA_DEVICE_NON_TEMPORAL") != nullptr)
-                return new NonTemporalDeviceStream<T>(label,
-                                                      hardware_id, host_core_id,
-                                                      Workload(workload_char),
-                                                      length, duration,
-                                                      alpha, a, b, c);
-            else
-                return new DeviceStream<T>(label,
-                                           hardware_id, host_core_id,
-                                           Workload(workload_char),
-                                           length, duration,
-                                           alpha, a, b, c);
+            return make_device(label,
+                               hardware_id, host_core_id,
+                               Workload(workload_char),
+                               length, duration,
+                               alpha, a, b, c);
         default:
             ERROR("Invalid device letter.");
     }
@@ -141,6 +121,71 @@ template
 Stream<double>*
 Stream<double>::make(std::string const& label,
                      std::size_t length, double duration, double alpha);
+
+//------------------------------------------------------------------------------
+/// \brief
+//
+template <typename T>
+Stream<T>*
+Stream<T>::make_host(std::string const& label,
+                     int hardware_id, Workload workload,
+                     std::size_t length, double duration,
+                     T alpha, Array<T>* a, Array<T>* b, Array<T>* c)
+{
+    if (std::getenv("SHIBUYA_AVX_NON_TEMPORAL") != nullptr)
+        return new NonTemporalAVXHostStream<T>(label,
+                                               hardware_id, workload,
+                                               length, duration,
+                                               alpha, a, b, c);
+    else if (std::getenv("SHIBUYA_AVX") != nullptr)
+        return new AVXHostStream<T>(label,
+                                    hardware_id, workload,
+                                    length, duration,
+                                    alpha, a, b, c);
+    else
+        return new HostStream<T>(label,
+                                 hardware_id, workload,
+                                 length, duration,
+                                 alpha, a, b, c);
+}
+
+//------------------------------------------------------------------------------
+/// \brief
+//
+template <typename T>
+Stream<T>*
+Stream<T>::make_device(std::string const& label,
+                       int hardware_id, int host_core_id,
+                       Workload workload, std::size_t length, double duration,
+                       T alpha, Array<T>* a, Array<T>* b, Array<T>* c)
+{
+    int elements_per_item = 1;
+    if (std::getenv("SHIBUYA_DEVICE_ELEMENTS_PER_ITEM") != nullptr) {
+        elements_per_item =
+            std::atoi(std::getenv("SHIBUYA_DEVICE_ELEMENTS_PER_ITEM"));
+        ASSERT(elements_per_item > 0);
+    }
+
+    int chunks_per_group = 1;
+    if (std::getenv("SHIBUYA_DEVICE_CHUNKS_PER_GROUP") != nullptr) {
+        chunks_per_group =
+            std::atoi(std::getenv("SHIBUYA_DEVICE_CHUNKS_PER_GROUP"));
+        ASSERT(chunks_per_group > 0);
+    }
+
+    if (std::getenv("SHIBUYA_DEVICE_NON_TEMPORAL") != nullptr)
+        return new NonTemporalDeviceStream<
+            T, 1, 1>(label,
+                     hardware_id, host_core_id,
+                     workload, length, duration,
+                     alpha, a, b, c);
+    else
+        return new DeviceStream<
+            T, 1, 1>(label,
+                     hardware_id, host_core_id,
+                     workload, length, duration,
+                     alpha, a, b, c);
+}
 
 //------------------------------------------------------------------------------
 /// \brief

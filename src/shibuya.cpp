@@ -25,6 +25,7 @@
 ///     Template precision.
 ///     Add support for vector types.
 ///
+template <typename T>
 void run(int argc, char** argv)
 {
     // Print number of CPUs and NUMA nodes.
@@ -54,17 +55,17 @@ void run(int argc, char** argv)
     // Set length of arrays.
     ASSERT(argc > 3, "Invalid command line.");
     std::size_t array_size = std::atol(argv[1])*1024*1024;
-    std::size_t array_length = array_size/sizeof(double);
+    std::size_t array_length = array_size/sizeof(T);
 
     // Set test duration.
     double test_duration = std::atof(argv[2]);
 
     // Create streams.
-    double alpha = 1.0f;
-    std::vector<Stream<double>*> streams(argc-3);
+    T alpha = T(1.0);
+    std::vector<Stream<T>*> streams(argc-3);
     for (int i = 3; i < argc; ++i)
-        streams[i-3] = Stream<double>::make(argv[i], array_length,
-                                            test_duration, alpha);
+        streams[i-3] = Stream<T>::make(argv[i], array_length,
+                                       test_duration, alpha);
 
     // Print streams' info.
     fprintf(stderr, "%3ld stream%s\n", streams.size(),
@@ -145,7 +146,7 @@ void run(int argc, char** argv)
 int main(int argc, char** argv)
 {
     try {
-        run(argc, argv);
+        run<double>(argc, argv);
     }
     catch (Exception& e) {
         std::cerr << std::endl << e.what() << std::endl << std::endl;

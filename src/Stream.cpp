@@ -194,32 +194,32 @@ Stream<T>::test()
         case Workload::Type::Copy:
         case Workload::Type::Mul:
         case Workload::Type::Add:
-            a_->init(0.0, 1.0);
-            b_->init(length_, -1.0);
+            a_->init(T(0.0), T(1.0));
+            b_->init(T(length_), T(-1.0));
             break;
         case Workload::Type::Triad:
-            alpha_ = 2.0;
-            a_->init(0.0, 0.5);
-            b_->init(length_, -1.0);
+            alpha_ = T(2.0);
+            a_->init(T(0.0), T(0.5));
+            b_->init(T(length_), T(-1.0));
             break;
         case Workload::Type::Dot:
-            a_->init(0.2, 0.0);
-            b_->init(5.0, 0.0);
-            dot_sum_ = 0.0;
+            a_->init(T(0.2), T(0.0));
+            b_->init(T(5.0), T(0.0));
+            dot_sum_ = T(0.0);
             break;
         default: ERROR("Invalid workload type.");
     }
     if (workload_.type() == Workload::Type::Add ||
         workload_.type() == Workload::Type::Triad)
-        c_->init(0.0, 0.0);
+        c_->init(T(0.0), T(0.0));
     setAffinity();
     dispatch();
     switch (workload_.type()) {
-        case Workload::Type::Hip:   b_->check(0.0, 1.0); break;
-        case Workload::Type::Copy:  b_->check(0.0, 1.0); break;
-        case Workload::Type::Mul:   b_->check(0.0, alpha_); break;
-        case Workload::Type::Add:   c_->check(length_, 0.0); break;
-        case Workload::Type::Triad: c_->check(length_, 0.0); break;
+        case Workload::Type::Hip:   b_->check(T(0.0), T(1.0)); break;
+        case Workload::Type::Copy:  b_->check(T(0.0), T(1.0)); break;
+        case Workload::Type::Mul:   b_->check(T(0.0), T(alpha_)); break;
+        case Workload::Type::Add:   c_->check(T(length_), T(0.0)); break;
+        case Workload::Type::Triad: c_->check(T(length_), T(0.0)); break;
         case Workload::Type::Dot:
             ASSERT(dot_sum_ == length_, "Correctness check failed.");
             break;
@@ -258,9 +258,9 @@ Stream<T>::stress()
     double timestamp;
     double count = 0.0;
     do {
-        a_->init(count, 1.0);
+        a_->init(T(count), T(1.0));
         dispatch();
-        b_->check(count, 1.0);
+        b_->check(T(count), T(1.0));
         ++count;
 
         auto stop = std::chrono::high_resolution_clock::now();

@@ -112,7 +112,7 @@ private:
     {
         T* a = this->a_->host_ptr();
         T* b = this->b_->host_ptr();
-        T sum = 0.0;
+        T sum = T(0.0);
         for (std::size_t i = 0; i < this->length_; ++i)
             sum += a[i]*b[i];
 

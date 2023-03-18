@@ -233,7 +233,7 @@ private:
         HIP_CALL(hipDeviceSynchronize(),
                  "Device synchronization failed.");
 
-        this->dot_sum_ = 0.0;
+        this->dot_sum_ = T(0.0);
         for (int i = 0; i < dot_num_groups_; ++i)
             this->dot_sum_ += this->dot_sums_[i];
     }
@@ -279,7 +279,7 @@ private:
         std::size_t i = (std::size_t)blockIdx.x*blockDim.x + threadIdx.x;
         const int thx = threadIdx.x;
 
-        sums[thx] = 0.0;
+        sums[thx] = T(0.0);
         for (; i < length; i += blockDim.x*gridDim.x)
             sums[thx] += a[i]*b[i];
 

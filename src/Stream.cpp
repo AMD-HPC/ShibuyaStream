@@ -163,28 +163,113 @@ Stream<T>::make_device(std::string const& label,
     if (std::getenv("SHIBUYA_DEVICE_ELEMENTS_PER_ITEM") != nullptr) {
         elements_per_item =
             std::atoi(std::getenv("SHIBUYA_DEVICE_ELEMENTS_PER_ITEM"));
-        ASSERT(elements_per_item > 0);
     }
 
     int chunks_per_group = 1;
     if (std::getenv("SHIBUYA_DEVICE_CHUNKS_PER_GROUP") != nullptr) {
         chunks_per_group =
             std::atoi(std::getenv("SHIBUYA_DEVICE_CHUNKS_PER_GROUP"));
-        ASSERT(chunks_per_group > 0);
     }
 
-    if (std::getenv("SHIBUYA_DEVICE_NON_TEMPORAL") != nullptr)
-        return new NonTemporalDeviceStream<
-            T, 1, 1>(label,
-                     hardware_id, host_core_id,
-                     workload, length, duration,
-                     alpha, a, b, c);
-    else
-        return new DeviceStream<
-            T, 1, 1>(label,
-                     hardware_id, host_core_id,
-                     workload, length, duration,
-                     alpha, a, b, c);
+#define NTDS(elements_per_item, chunks_per_group) \
+    NonTemporalDeviceStream<                      \
+        T, elements_per_item, chunks_per_group>(  \
+            label, hardware_id, host_core_id,     \
+            workload, length, duration,           \
+            alpha, a, b, c)
+
+#define DS(elements_per_item, chunks_per_group)  \
+    DeviceStream<                                \
+        T, elements_per_item, chunks_per_group>( \
+            label, hardware_id, host_core_id,    \
+            workload, length, duration,          \
+            alpha, a, b, c)
+
+    if (std::getenv("SHIBUYA_DEVICE_NON_TEMPORAL") != nullptr) {
+        switch (elements_per_item) {
+        case 1:
+            switch (chunks_per_group) {
+            case 1: return new NTDS(1, 1); break;
+            case 2: return new NTDS(1, 2); break;
+            case 4: return new NTDS(1, 4); break;
+            case 8: return new NTDS(1, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 2:
+            switch (chunks_per_group) {
+            case 1: return new NTDS(2, 1); break;
+            case 2: return new NTDS(2, 2); break;
+            case 4: return new NTDS(2, 4); break;
+            case 8: return new NTDS(2, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 4:
+            switch (chunks_per_group) {
+            case 1: return new NTDS(4, 1); break;
+            case 2: return new NTDS(4, 2); break;
+            case 4: return new NTDS(4, 4); break;
+            case 8: return new NTDS(4, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 8:
+            switch (chunks_per_group) {
+            case 1: return new NTDS(8, 1); break;
+            case 2: return new NTDS(8, 2); break;
+            case 4: return new NTDS(8, 4); break;
+            case 8: return new NTDS(8, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        default:  ERROR("Invalid SHIBUYA_DEVICE_NON_TEMPORAL");
+        }
+    }
+    else {
+        switch (elements_per_item) {
+        case 1:
+            switch (chunks_per_group) {
+            case 1: return new DS(1, 1); break;
+            case 2: return new DS(1, 2); break;
+            case 4: return new DS(1, 4); break;
+            case 8: return new DS(1, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 2:
+            switch (chunks_per_group) {
+            case 1: return new DS(2, 1); break;
+            case 2: return new DS(2, 2); break;
+            case 4: return new DS(2, 4); break;
+            case 8: return new DS(2, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 4:
+            switch (chunks_per_group) {
+            case 1: return new DS(4, 1); break;
+            case 2: return new DS(4, 2); break;
+            case 4: return new DS(4, 4); break;
+            case 8: return new DS(4, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        case 8:
+            switch (chunks_per_group) {
+            case 1: return new DS(8, 1); break;
+            case 2: return new DS(8, 2); break;
+            case 4: return new DS(8, 4); break;
+            case 8: return new DS(8, 8); break;
+            default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
+            }
+            break;
+        default:  ERROR("Invalid SHIBUYA_DEVICE_NON_TEMPORAL");
+        }
+    }
+
+#undef NTDS
+#undef DS
 }
 
 //------------------------------------------------------------------------------

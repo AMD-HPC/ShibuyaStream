@@ -84,6 +84,20 @@ Make sure to `unset SHIBUYA_AVX_NON_TEMPORAL` to use AVX instructions **without*
 
 * `export SHIBUYA_DEVICE_NON_TEMPORAL=1` to use LLVM non-temporal memory access builtins in device kernels.
 
+By default, in device kernels, each work item touches one element of each input array.\
+Use `SHIBUYA_DEVICE_ELEMENTS_PER_ITEM` to change the default value, e.g.:
+
+* `export SHIBUYA_DEVICE_ELEMENTS_PER_ITEM=4` for each work item to touch 4 consecutive elements.
+
+Supported values of `SHIBUYA_DEVICE_ELEMENTS_PER_ITEM` are 1, 2, 4, and 8.
+
+By default, in device kernels, each work group touches one contiguous chunk of each input array.\
+Use `SHIBUYA_DEVICE_CHUNKS_PER_GROUP` to change the default value, e.g.:
+
+* `export SHIBUYA_DEVICE_CHUNKS_PER_GROUP=4` for each work group to touch 4 discontiguous chunks.
+
+Supported values of `SHIBUYA_DEVICE_CHUNKS_PER_GROUP` are 1, 2, 4, and 8.
+
 #### Output Options
 
 When printing results, by default, the bandwidth is reported at one second intervals.\

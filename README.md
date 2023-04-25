@@ -143,19 +143,26 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
 
 ## Important Remarks
 
-* The `H` operation uses `hipMemcpy()` to copy the data from the source to the destination.
-  If executed by a GPU device, host memory is page-locked.
-  If executed by a CPU core, host memory is not page-locked.
+> **Note**\
+> The `H` operation uses `hipMemcpy()` to copy the data from the source to the destination.
+> * If executed by a GPU device, host memory is page-locked.
+> * If executed by a CPU core, host memory is not page-locked.
 
-* The benchmark reports the aggregate bandwidth.
-  E.g., for the copy operation (`B[i]=A[i]`) it reports the bandwidth of reading A + the bandwidth of writing B.
-  If the same memory is the source and the destination then combined read/write bandwidth of that memory is reported.
-  If the source and the destination are different, then the result is the bandwidth of the bottleneck ×2
-  — either the slower memory or the interconnect.
+> **Note**\
+> The benchmark reports the aggregate bandwidth.
+> E.g., for the copy operation (`B[i]=A[i]`) it reports the bandwidth of reading A + the bandwidth of writing B.
+> If the same memory is the source and the destination then combined read/write bandwidth of that memory is reported.
+> If the source and the destination are different, then the result is the bandwidth of the bottleneck ×2
+> — either the slower memory or the interconnect.
 
-* Config is printed to stderr, while performance is printed to stdout. This makes it easy to, e.g.:
-  * `2>/dev/null` to discard stderr,
-  * `1>results.csv` to send stdout to a file.
+> **Note**\
+> Config is printed to stderr, while performance is printed to stdout. This makes it easy to, e.g.:
+> * `2>/dev/null` to discard stderr,
+> * `1>results.csv` to send stdout to a file.
+
+> **Warning**\
+> Do not use the same CPU core to execute a CPU stream and control a GPU stream.\
+> E.g. if a CPU stream starts with `C0-` make sure that no GPU stream ends with `-0`.
 
 ## Help
 

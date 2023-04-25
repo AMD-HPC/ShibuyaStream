@@ -158,7 +158,9 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
 > **Note**\
 > Config is printed to stderr, while performance is printed to stdout. This makes it easy to, e.g.:
 > * `2>/dev/null` to discard stderr,
-> * `1>results.csv` to send stdout to a file.
+> * `1>results.csv` to send stdout to a file,
+> * `&>results.txt` to send stdout and stderr to the same file (overwrite),
+> * `&>>results.txt` to send stdout and stderr to the same file (append).
 
 > **Warning**\
 > Do not use the same CPU core to execute a CPU stream and control a GPU stream.\

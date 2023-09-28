@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 /// \file
 /// \brief      main ShibuyaStream driver routines
-/// \date       2020-2022
+/// \date       2020-2023
 /// \author     Jakub Kurzak
 /// \copyright  Advanced Micro Devices, Inc.
 ///

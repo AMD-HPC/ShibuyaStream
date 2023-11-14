@@ -55,8 +55,8 @@ public:
 
     ~DeviceArray()
     {
-        hipSetDevice(device_id_);
-        hipFree(this->device_ptr_);
+        (void)hipSetDevice(device_id_);
+        (void)hipFree(this->device_ptr_);
     }
 
     T* host_ptr() override { return(this->device_ptr_); }

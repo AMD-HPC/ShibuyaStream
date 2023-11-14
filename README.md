@@ -15,12 +15,14 @@
 
 ## Building
 
+```
 git clone git@github.com:AMD-HPC/ShibuyaStream.git
 cd ShibuyaStream
 mkdir build
 cd build
 cmake ..
 make -j
+```
 
 ## Usage
 

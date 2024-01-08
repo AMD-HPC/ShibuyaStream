@@ -234,7 +234,7 @@ private:
     double bandwidth(double time)
     {
         switch (workload_.type()) {
-            case Workload::Type::Hip:   return 2.0*size_/time/1e9;
+            case Workload::Type::Hip:   return 1.0*size_/time/1e9;
             case Workload::Type::Copy:  return 2.0*size_/time/1e9;
             case Workload::Type::Mul:   return 2.0*size_/time/1e9;
             case Workload::Type::Add:   return 3.0*size_/time/1e9;

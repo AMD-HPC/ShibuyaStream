@@ -80,7 +80,7 @@ void run(int argc, char** argv)
     else
         fprintf(stderr, "Stringent correctness testing...\n");
 
-    // Launch the run, test, join thrads.
+    // Launch the run, test, join threads.
     std::vector<std::thread> threads(streams.size());
     for (int i = 0; i < streams.size(); ++i)
         threads[i] = std::thread([&, i] {

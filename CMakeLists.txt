@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.21)
 
 project(ShibuyaStream)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Set build type to Release by default" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+      "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 enable_language(HIP)
 
 add_compile_options(-mavx)

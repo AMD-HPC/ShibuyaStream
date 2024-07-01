@@ -11,11 +11,11 @@
 #include <exception>
 #include <string>
 
-#if defined(__HIPCC__)
-#include <hip/hip_runtime.h>
-#elif defined(__NVCC__)
-#include <cuda_runtime.h>
-#include "hip2cuda.h"
+#if defined(USE_HIP)
+    #include <hip/hip_runtime.h>
+#elif defined(USE_CUDA)
+    #include <cuda_runtime.h>
+    #include "hip2cuda.h"
 #endif
 
 //------------------------------------------------------------------------------

@@ -9,16 +9,16 @@
 
 #include "Array.h"
 
-#if defined(__HIPCC__)
-#include <hip/hip_runtime.h>
-#elif defined(__NVCC__)
-#include <cuda_runtime.h>
-#include "hip2cuda.h"
+#if defined(USE_HIP)
+    #include <hip/hip_runtime.h>
+#elif defined(USE_CUDA)
+    #include <cuda_runtime.h>
+    #include "hip2cuda.h"
 #endif
 
 // Kernels defined as global functions for NVCC,
 // which does not support static device members.
-#if defined(__NVCC__)
+#if defined(USE_CUDA)
     template <typename T>
     __global__ void init_kernel(T* a, T start, T step)
     {
@@ -97,7 +97,7 @@ private:
     static const int group_size_ = 256;
 
 // As opposed to NVCC, HIPCC supports static device members.
-#if defined(__HIPCC__)
+#if defined(USE_HIP)
     /// Initializes an array in device memory.
     static __global__ void init_kernel(T* a, T start, T step)
     {

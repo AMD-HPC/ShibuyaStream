@@ -10,7 +10,7 @@
 #include "Stream.h"
 
 // Workaround for NVCC, which does not support __global__ static members.
-#if defined(__NVCC__)
+#if defined(USE_CUDA)
 template <typename T>
 __global__ void copy_kernel(T const* __restrict a, T* __restrict b)
 {
@@ -239,7 +239,7 @@ private:
     }
 
 // __global__ static members are okay for HIPCC.
-#if defined(__HIPCC__)
+#if defined(USE_HIP)
     // Return the offset for each group.
     static __device__ uint32_t offset()
     {

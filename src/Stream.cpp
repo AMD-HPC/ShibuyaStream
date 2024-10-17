@@ -440,13 +440,13 @@ Stream<T>::scanString(std::string const& string,
     a_location_char = string[pos++];
     end = string.find('-', pos);
     a_location_id = std::stoi(string.substr(pos, end-pos));
-    pos += 2;
+    pos = end+1;
 
     // Scan array `b` location.
     b_location_char = string[pos++];
     end = string.find('-', pos);
     b_location_id = std::stoi(string.substr(pos, end-pos));
-    pos += 2;
+    pos = end+1;
 
     // if Add or Triad
     if (workload_char == 'A' || workload_char == 'T') {
@@ -454,11 +454,11 @@ Stream<T>::scanString(std::string const& string,
         c_location_char = string[pos++];
         end = string.find('-', pos);
         c_location_id = std::stoi(string.substr(pos, end-pos));
-        pos += 2;
+        pos = end+1;
     }
 
     // if device stream
     if (hardware_char == 'D') {
-        host_core_id = std::stoi(string.substr(pos, end-pos));
+        host_core_id = std::stoi(string.substr(pos));
     }
 }

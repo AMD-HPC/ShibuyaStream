@@ -5,9 +5,10 @@
 /// \author     Jakub Kurzak
 /// \copyright  Advanced Micro Devices, Inc.
 ///
-#include "Report.h"
-#include "HostStream.h"
+#include "CommandLine.h"
 #include "DeviceStream.h"
+#include "HostStream.h"
+#include "Report.h"
 
 #include <iostream>
 #include <thread>
@@ -28,6 +29,19 @@
 template <typename T>
 void run(int argc, char** argv)
 {
+    // Check the command line.
+    ASSERT(argc > 3, "Invalid command line.");
+    CommandLine cmd(argc, argv);
+    cmd.check(
+        {1, 2},
+        std::regex(R"(^(?:[0-9]+)$)"));
+    cmd.check(
+        3, argc-1,
+        std::regex(R"(^(?:C\d+-[CMDH]-[ND]\d+-[ND]\d+|)"
+                   R"(C\d+-[AT]-[ND]\d+-[ND]\d+-[ND]\d+|)"
+                   R"(D\d+-[CMDH]-[ND]\d+-[ND]\d+-\d+|)"
+                   R"(D\d+-[AT]-[ND]\d+-[ND]\d+-[ND]\d+-\d+)$)"));
+
     // Print number of CPUs and NUMA nodes.
     ASSERT(numa_available() != -1, "NUMA not available.");
     fprintf(stderr, "\033[38;5;30m\n");
@@ -53,7 +67,6 @@ void run(int argc, char** argv)
     fprintf(stderr, "%3d GPU%s\n", num_gpus, num_gpus > 1 ? "s" : "");
 
     // Set length of arrays.
-    ASSERT(argc > 3, "Invalid command line.");
     std::size_t array_size = std::atol(argv[1])*1024*1024;
     std::size_t array_length = array_size/sizeof(T);
 

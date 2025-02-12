@@ -143,6 +143,10 @@ void run(int argc, char** argv)
     for (auto const& stream : streams)
         report.addTimeline(*stream);
     report.print();
+
+    // Destroy streams.
+    for (auto const& stream : streams)
+        delete stream;
 }
 
 //------------------------------------------------------------------------------

@@ -178,6 +178,12 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
 > Do not use the same CPU core to execute a CPU stream and control a GPU stream.\
 > E.g. if a CPU stream starts with `C0-` make sure that no GPU stream ends with `-0`.
 
+> **Warning: OLCF Frontier**\
+> By default, Frontier uses low-noise mode which prevents users from running on core 0:\
+> https://docs.olcf.ornl.gov/systems/frontier_user_guide.html#low-noise-mode-layout \
+> Unless you disable the low-noise mode using `-S 0`, attempts to use core 0 will fail.\
+> Specifically, the call to `pthread_setaffinity_np()` will fail.
+
 ## Help
 
 Jakub Kurzak (<jakurzak@amd.com>)

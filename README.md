@@ -37,7 +37,7 @@ The command line syntax is:
 
 ```
 ./shibuya  SIZE      size of arrays in megabytes
-           TIME      test duration in seconds
+           ITER      number of iterations
           [STREAM_1]
           [STREAM_2]
           ...
@@ -78,9 +78,9 @@ where streams are defined as:
 ### Examples of command lines
 
 * `./shibuya 128 3 C0-C-N0-N0 C1-C-N0-N0 C2-C-N0-N0 C3-C-N0-N0`
-  * four cores simultaneously making copies of size 128 MB for 3 seconds in NUMA node 0
+  * four cores simultaneously making copies of size 128 MB for 3 iterations in NUMA node 0
 * `./shibuya 1024 5 D0-H-D0-D1-0 D1-H-D1-D2-1 D2-H-D2-D3-2 D3-H-D3-D0-3`
-  * four devices simultaneously making copies, using `hipMemcpy()`, of size 1 GB for 5 seconds in a round-robin fashion
+  * four devices simultaneously making copies, using `hipMemcpy()`, of size 1 GB for 5 iterations in a round-robin fashion
 
 ### Environment Settings
 

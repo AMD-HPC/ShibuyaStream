@@ -26,6 +26,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_HIP "Use HIP for AMD GPUs" ON)
 option(USE_CUDA "Use CUDA for NVIDIA GPUs" OFF)
 
+# Option to enable AVX support
+option(ENABLE_AVX_SUPPORT "Enable AVX instructions" ON)
+
 if(USE_HIP AND USE_CUDA)
   message(FATAL_ERROR "Cannot use both HIP and CUDA at the same time.")
 
@@ -43,7 +46,11 @@ elseif(USE_HIP)
 
   target_link_libraries(shibuya PRIVATE ${NUMA_LIBRARY} -pthread)
   target_compile_definitions(shibuya PRIVATE USE_HIP)
-  target_compile_options(shibuya PRIVATE -mavx)
+
+  if(ENABLE_AVX_SUPPORT)
+    target_compile_definitions(shibuya PRIVATE ENABLE_AVX_SUPPORT)
+    target_compile_options(shibuya PRIVATE -mavx)
+  endif()
 
 # ------------------------------------------------------------------------------
 # Setup for building with CUDA (NVIDIA GPUs)
@@ -62,7 +69,11 @@ elseif(USE_CUDA)
 
   target_link_libraries(shibuya PRIVATE ${NUMA_LIBRARY} -pthread)
   target_compile_definitions(shibuya PRIVATE USE_CUDA)
-  target_compile_options(shibuya PRIVATE -mavx)
+
+  if(ENABLE_AVX_SUPPORT)
+    target_compile_definitions(shibuya PRIVATE ENABLE_AVX_SUPPORT)
+    target_compile_options(shibuya PRIVATE -mavx)
+  endif()
 
 else()
   message(FATAL_ERROR "Either USE_HIP or USE_CUDA must be set.")

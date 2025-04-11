@@ -9,7 +9,11 @@
 
 #include "HostStream.h"
 
-#include <immintrin.h>
+#ifdef ENABLE_AVX_SUPPORT
+    #include <immintrin.h>
+#else
+    #include "AVXStub.h"
+#endif
 
 //------------------------------------------------------------------------------
 /// \brief

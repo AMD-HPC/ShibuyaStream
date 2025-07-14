@@ -9,6 +9,8 @@
 
 #include "Array.h"
 
+#include <cassert>
+
 #if defined(USE_HIP)
     #include <hip/hip_runtime.h>
 #elif defined(USE_CUDA)

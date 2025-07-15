@@ -176,7 +176,9 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
 
 > **Warning**\
 > Do not use the same CPU core to execute a CPU stream and control a GPU stream.\
-> E.g. if a CPU stream starts with `C0-` make sure that no GPU stream ends with `-0`.
+> E.g. if a CPU stream starts with `C0-` make sure that no GPU stream ends with `-0`.\
+> Also, do not use the same CPU core to control more then one GPU.\
+> I.e., if one GPU stream ends with `-0`, make sure no other does.
 
 > **Warning: OLCF Frontier**\
 > By default, Frontier uses low-noise mode which prevents users from running on core 0:\

@@ -11,7 +11,7 @@
 
 //------------------------------------------------------------------------------
 /// \brief
-///     Generates a symmary of the execution.
+///     Generates a summary of the execution.
 ///
 class Report {
 public:
@@ -27,7 +27,7 @@ public:
     Report(double duration, double interval)
         : duration_(duration), interval_(interval) {}
 
-    ~Report() {}
+    ~Report() = default;
 
     template <typename T>
     void addTimeline(Stream<T> const& stream);
@@ -84,7 +84,7 @@ Report::print()
     for (std::size_t sample = 0; sample < bandwidths_[0].size(); ++sample) {
         printf("%lf", time);
         double total_bandwidth = 0.0;
-        for (int stream = 0; stream < bandwidths_.size(); ++stream) {
+        for (std::size_t stream = 0; stream < bandwidths_.size(); ++stream) {
             if (sample < bandwidths_[stream].size()) {
                 total_bandwidth += bandwidths_[stream][sample];
                 printf(",%lf", bandwidths_[stream][sample]);

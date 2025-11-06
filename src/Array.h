@@ -24,7 +24,7 @@ public:
     Array(std::size_t length)
         : length_(length),
           size_(length*sizeof(T)) {}
-    virtual ~Array() {}
+    virtual ~Array() = default;
 
     T* device_ptr() { return device_ptr_; }
     virtual T* host_ptr() = 0;

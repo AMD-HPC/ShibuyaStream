@@ -24,7 +24,7 @@ public:
         Hip    ///< `hipMemcpy()`
     };
 
-    Workload() {};
+    Workload() = default;
     /// Creates the workload object of the given type.
     Workload(char letter)
     {

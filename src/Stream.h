@@ -86,16 +86,16 @@ public:
     virtual void printInfo() = 0;
 
     /// Returns the value of the last timestamp in the series.
-    double endTime() { return timestamps_[timestamps_.size()-1]; }
+    double endTime() const { return timestamps_[timestamps_.size()-1]; }
 
     /// Finds the minimum interval between timestamps.
     /// If only one timestamp exists, returns that timestamp,
     /// i.e., the time elapsed from the start of the run to the end
     /// of the one and only transfer performed.
-    double minTime()
+    double minTime() const
     {
         double min_time = timestamps_[0];
-        for (int i = 1; i < timestamps_.size(); ++i) {
+        for (std::size_t i = 1; i < timestamps_.size(); ++i) {
             double interval = timestamps_[i]-timestamps_[i-1];
             if (interval < min_time) {
                 min_time = interval;
@@ -108,10 +108,10 @@ public:
     /// If only one timestamp exists, returns that timestamp,
     /// i.e., the time elapsed from the start of the run to the end
     /// of the one and only transfer performed.
-    double maxTime()
+    double maxTime() const
     {
         double max_time = timestamps_[0];
-        for (int i = 1; i < timestamps_.size(); ++i) {
+        for (std::size_t i = 1; i < timestamps_.size(); ++i) {
             double interval = timestamps_[i]-timestamps_[i-1];
             if (interval > max_time) {
                 max_time = interval;
@@ -121,7 +121,7 @@ public:
     }
 
     /// Prints the timestamps and the corresponding bandwidths.
-    void printStats()
+    void printStats() const
     {
         for (std::size_t i = 0; i < timestamps_.size(); ++i)
             printf("\t%10lf\t%lf\n", timestamps_[i], bandwidths_[i]);

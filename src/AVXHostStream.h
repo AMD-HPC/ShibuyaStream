@@ -59,7 +59,7 @@ public:
         : HostStream<T>(label, core_id, workload, length, duration, alpha,
                         a, b, c) {}
 
-    ~AVXHostStream() {}
+    ~AVXHostStream() = default;
 
 private:
     /// Implements CPU Copy stream.

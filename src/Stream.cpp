@@ -264,7 +264,7 @@ Stream<T>::make_device(std::string const& label,
             default: ERROR("Invalid SHIBUYA_DEVICE_CHUNKS_PER_GROUP");
             }
             break;
-        default:  ERROR("Invalid SHIBUYA_DEVICE_NON_TEMPORAL");
+        default:  ERROR("Invalid SHIBUYA_DEVICE_ELEMENTS_PER_ITEM");
         }
     }
 

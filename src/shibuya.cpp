@@ -95,7 +95,7 @@ void run(int argc, char** argv)
 
     // Launch the run, test, join threads.
     std::vector<std::thread> threads(streams.size());
-    for (int i = 0; i < streams.size(); ++i)
+    for (std::size_t i = 0; i < streams.size(); ++i)
         threads[i] = std::thread([&, i] {
             if (std::getenv("SHIBUYA_STRINGENT") == nullptr) {
                 streams[i]->run();

@@ -53,7 +53,7 @@ public:
         : Stream<T>(label, workload, length, duration, alpha, a, b, c),
           core_id_(core_id) {}
 
-    ~HostStream() {}
+    ~HostStream() = default;
 
     /// Prints core number, workload type, and locations of arrays.
     void printInfo() override

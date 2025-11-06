@@ -88,7 +88,7 @@ private:
 
     ///
     /// \brief
-    ///     Prints an error message for an invalid argument end errors out.
+    ///     Prints an error message for an invalid argument and errors out.
     ///
     /// \param[in] error_index
     ///     The index of the invalid argument in argv.

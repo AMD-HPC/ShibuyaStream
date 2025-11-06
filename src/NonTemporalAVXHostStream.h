@@ -17,14 +17,14 @@
 
 //------------------------------------------------------------------------------
 /// \brief
-///     Represents a streaming workload executed by a CPU.
-///     Inherits from the Stream class.
+///     Represents a streaming workload executed by a CPU with non-temporal stores.
+///     Inherits from the HostStream class.
 ///
 template <typename T>
 class NonTemporalAVXHostStream: public HostStream<T> {
 public:
     /// \brief
-    ///     Creates a AVXHostStream object.
+    ///     Creates a NonTemporalAVXHostStream object.
     ///
     /// \param[in] label
     ///     the string defining the stream, e.g., C0-C-N0-N0
@@ -59,7 +59,7 @@ public:
         : HostStream<T>(label, core_id, workload, length, duration, alpha,
                         a, b, c) {}
 
-    ~NonTemporalAVXHostStream() {}
+    ~NonTemporalAVXHostStream() = default;
 
 private:
     /// Implements CPU Copy stream.

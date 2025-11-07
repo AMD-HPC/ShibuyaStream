@@ -17,8 +17,8 @@
 
 //------------------------------------------------------------------------------
 /// \brief
-///     Represents a streaming workload executed by a CPU with non-temporal stores.
-///     Inherits from the HostStream class.
+///     Represents a streaming workload executed by a CPU with
+///     non-temporal stores. Inherits from the HostStream class.
 ///
 template <typename T>
 class NonTemporalAVXHostStream: public HostStream<T> {

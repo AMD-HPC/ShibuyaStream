@@ -81,6 +81,7 @@ Report::print()
     printf("total\n");
 
     double time = 0.0;
+    ASSERT(!bandwidths_.empty());
     for (std::size_t sample = 0; sample < bandwidths_[0].size(); ++sample) {
         printf("%lf", time);
         double total_bandwidth = 0.0;

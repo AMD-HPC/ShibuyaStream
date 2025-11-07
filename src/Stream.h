@@ -203,11 +203,11 @@ private:
     void hip()
     {
         auto a = this->a_->host_ptr();
-        if (typeid(this->a_) == typeid(DeviceArray<T>))
+        if (dynamic_cast<DeviceArray<T>*>(this->a_) != nullptr)
             a = this->a_->device_ptr();
 
         auto b = this->b_->host_ptr();
-        if (typeid(this->b_) == typeid(DeviceArray<T>))
+        if (dynamic_cast<DeviceArray<T>*>(this->b_) != nullptr)
             b = this->b_->device_ptr();
 
         HIP_CALL(hipMemcpy(b, a, this->size_, hipMemcpyDefault),

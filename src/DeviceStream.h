@@ -130,6 +130,7 @@ public:
     /// Destroys a DeviceStream object.
     /// Unregisters the `a` and `b` arrays.
     /// Unregisters the `c` array if the workload is Add or Triad.
+    /// Frees the page-locked memory for dot product partial sums.
     ~DeviceStream()
     {
         this->a_->unregisterMem();
@@ -137,6 +138,8 @@ public:
         if (this->workload_.type() == Workload::Type::Add ||
             this->workload_.type() == Workload::Type::Triad)
             this->c_->unregisterMem();
+        
+        (void)hipHostFree(dot_sums_);
     }
 
     /// Prints device number, workload type, locations of arrays,

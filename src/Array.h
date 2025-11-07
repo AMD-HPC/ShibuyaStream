@@ -23,7 +23,8 @@ public:
 
     Array(std::size_t length)
         : length_(length),
-          size_(length*sizeof(T)) {}
+          size_(length*sizeof(T)),
+          device_ptr_(nullptr) {}
     virtual ~Array() = default;
 
     T* device_ptr() { return device_ptr_; }

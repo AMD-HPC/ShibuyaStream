@@ -221,8 +221,9 @@ private:
         sums[threadIdx.x] = T(0.0);
         for (auto j = 0u; j < chunks_per_group; ++j)
             for (auto i = 0u; i < elements_per_item; ++i)
-                sums[threadIdx.x] += __builtin_nontemporal_load(&a[offs + j*strd + i])*
-                                     __builtin_nontemporal_load(&b[offs + j*strd + i]);
+                sums[threadIdx.x] +=
+                    __builtin_nontemporal_load(&a[offs + j*strd + i])*
+                    __builtin_nontemporal_load(&b[offs + j*strd + i]);
 
         for (auto i = blockDim.x/2; i > 0; i /= 2) {
             __syncthreads();

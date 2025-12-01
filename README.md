@@ -182,7 +182,7 @@ On Linux they can also easily be converted to raster images using [ImageMagic], 
 
 > **Warning**\
 > Do not launch more then one stream to the same GPU.\
-> I.e., if one stream starts with `D0-` make sure no other GPU stream starts with `D0-`.
+> I.e., if one stream starts with `D0-` make sure no other stream starts with `D0-`.
 
 > **Warning: OLCF Frontier**\
 > By default, Frontier uses low-noise mode which prevents users from running on core 0:\

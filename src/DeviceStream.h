@@ -139,6 +139,7 @@ public:
             this->workload_.type() == Workload::Type::Triad)
             this->c_->unregisterMem();
         
+        (void)hipSetDevice(device_id_);
         (void)hipHostFree(dot_sums_);
     }
 
